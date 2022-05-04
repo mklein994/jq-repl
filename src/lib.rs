@@ -1,5 +1,5 @@
 use clap::Parser;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
 
 #[derive(clap::Parser)]
@@ -34,6 +34,8 @@ pub fn run() -> Result<Option<ExitStatus>, Error> {
 
     let jq_prefix = format!("jq --color-output --raw-output {}", opt.jq.join(" "));
 
+    let jq_history_file = Path::new(concat!(env!("HOME"), "/.jq_repl_history")).display();
+
     let bind = |key: &str, undo_key: &str, value: &str| {
         [
             format!("--bind={key}:preview:{jq_prefix} {value} {{q}} {input}"),
@@ -43,6 +45,7 @@ pub fn run() -> Result<Option<ExitStatus>, Error> {
 
     let mut fzf = Command::new("fzf")
         .args(["--print-query", "--preview-window=up,99%"])
+        .arg(format!("--history={jq_history_file}"))
         .arg(format!("--preview={jq_prefix} {{q}} {input}"))
         .arg(format!(
             "--bind={}",
