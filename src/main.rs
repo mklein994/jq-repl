@@ -1,13 +1,18 @@
-fn main() {
+use std::process::ExitCode;
+
+fn main() -> ExitCode {
     match jq_repl::run() {
-        Ok(exit_status) => {
-            if let Some(code) = exit_status.and_then(|exit| exit.code()) {
-                std::process::exit(code);
+        Ok(exit_status) => match exit_status {
+            Some(status) if status.success() => ExitCode::SUCCESS,
+            Some(status) => {
+                eprintln!("{status}");
+                ExitCode::FAILURE
             }
-        }
+            None => ExitCode::SUCCESS,
+        },
         Err(err) => {
             eprintln!("{:?}", err);
-            std::process::exit(1);
+            ExitCode::FAILURE
         }
     }
 }
