@@ -1,10 +1,6 @@
-use std::process::ExitCode;
-
-fn main() -> ExitCode {
+fn main() {
     if let Err(err) = jq_repl::run() {
         eprintln!("{err}");
-        ExitCode::FAILURE
-    } else {
-        ExitCode::SUCCESS
+        std::process::exit(1);
     }
 }
