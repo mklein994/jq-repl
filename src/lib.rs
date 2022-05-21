@@ -120,11 +120,6 @@ pub fn get_query(mut fzf: Command) -> Result<String, Error> {
         }
         Ok(output) => Err(Error::Fzf(output.status)),
         Err(err) => Err(err.into()),
-        // Ok(Some(status)) => Some(status),
-        // Ok(None) => Some(fzf.wait()?),
-        // Err(err) => {
-        //     return Err(Error::from(err));
-        // }
     };
 
     query
