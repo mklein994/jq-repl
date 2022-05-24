@@ -130,17 +130,13 @@ pub fn build_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
 }
 
 pub fn get_query(mut fzf: Command) -> Result<String, Error> {
-    let child = fzf.spawn()?;
+    let output = fzf.stderr(Stdio::inherit()).output()?;
 
-    let query = match child.wait_with_output() {
-        Ok(output) if output.status.success() => {
-            let out = String::from_utf8(output.stdout)?;
-            let out = out.trim();
-            Ok(out.to_string())
-        }
-        Ok(output) => Err(Error::Fzf(output.status)),
-        Err(err) => Err(err.into()),
-    };
-
-    query
+    if output.status.success() {
+        let out = String::from_utf8(output.stdout)?;
+        let out = out.trim();
+        Ok(out.to_string())
+    } else {
+        Err(Error::Fzf(output.status))
+    }
 }
