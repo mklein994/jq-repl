@@ -35,19 +35,19 @@ pub fn run() -> Result<(), Error> {
 }
 
 pub fn build_output_cmd(
-    cmd: &str,
+    jq_bin: &str,
     input: &InputFile,
     args: &[String],
     output: &str,
 ) -> Result<Command, Error> {
-    let f = Command::new("cat")
+    let cat = Command::new("cat")
         .arg(input.to_string())
         .stdout(Stdio::piped())
         .spawn()?;
 
-    let mut jq = Command::new(cmd);
+    let mut jq = Command::new(jq_bin);
 
-    jq.args(args).arg(output).stdin(f.stdout.unwrap());
+    jq.args(args).arg(output).stdin(cat.stdout.unwrap());
     Ok(jq)
 }
 
