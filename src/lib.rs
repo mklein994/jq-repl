@@ -24,7 +24,7 @@ pub fn run() -> Result<(), Error> {
     let (cmd, path) = build_cmd(&opt)?;
     let query = get_query(cmd)?;
 
-    eprintln!("{:?}", query);
+    eprintln!("{:?}", if query.is_empty() { "." } else { &query });
 
     let output = build_output_cmd(&opt.jq_bin, &path, &opt.args, &query)?.output()?;
 
