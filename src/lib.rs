@@ -5,7 +5,7 @@ use std::process::{Command, Stdio};
 #[derive(clap::Parser)]
 pub struct Opt {
     /// Executable to call
-    #[clap(env, default_value = "jq")]
+    #[clap(long, env, default_value = "jq")]
     jq_bin: String,
 
     /// Name of the JSON file to read from (defaults to standard input)
