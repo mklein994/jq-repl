@@ -2,6 +2,7 @@ mod error;
 
 use clap::Parser;
 pub use error::Error;
+use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -39,14 +40,14 @@ pub fn build_output_cmd(
     args: &[String],
     output: &str,
 ) -> Result<Command, Error> {
-    let cat = Command::new("cat")
-        .arg(input.to_string())
-        .stdout(Stdio::piped())
-        .spawn()?;
+    let file = match input {
+        InputFile::File(file) => File::open(file)?,
+        InputFile::Stdin(stdin) => File::open(stdin)?,
+    };
 
     let mut jq = Command::new(jq_bin);
 
-    jq.args(args).arg(output).stdin(cat.stdout.unwrap());
+    jq.args(args).arg(output).stdin(file);
     Ok(jq)
 }
 
