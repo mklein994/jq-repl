@@ -90,10 +90,12 @@ pub fn build_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
 
     let echo = Command::new("echo").stdout(Stdio::piped()).spawn()?;
 
-    let jq_prefix = format!(
-        "{jq_bin} --color-output --raw-output {}",
-        opt.args.join(" ")
-    );
+    let mut jq_prefix = format!("{jq_bin} --color-output --raw-output");
+    let args = opt.args.join(" ");
+    if !args.is_empty() {
+        jq_prefix.push(' ');
+        jq_prefix.push_str(&args);
+    }
 
     let jq_history_file = Path::new(concat!(env!("HOME"), "/.jq_repl_history")).display();
 
