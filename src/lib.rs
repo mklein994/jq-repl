@@ -30,10 +30,6 @@ pub fn run() -> Result<(), Error> {
 
     print!("{}", String::from_utf8(output.stdout)?);
 
-    if let InputFile::Stdin(file) = path {
-        std::fs::remove_file(file)?;
-    }
-
     Ok(())
 }
 
@@ -58,6 +54,14 @@ pub fn build_output_cmd(
 pub enum InputFile<'a> {
     Stdin(PathBuf),
     File(&'a Path),
+}
+
+impl<'a> Drop for InputFile<'a> {
+    fn drop(&mut self) {
+        if let Self::Stdin(path) = self {
+            std::fs::remove_file(path).expect("failed to remove temp file!");
+        }
+    }
 }
 
 impl<'a> std::fmt::Display for InputFile<'a> {
