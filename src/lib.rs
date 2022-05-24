@@ -2,7 +2,7 @@ use clap::Parser;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-#[derive(clap::Parser)]
+#[derive(Debug, clap::Parser)]
 pub struct Opt {
     /// Executable to call
     #[clap(long, env, default_value = "jq")]
@@ -18,7 +18,7 @@ pub struct Opt {
 
 pub fn run() -> Result<(), Error> {
     let opt = Opt::parse();
-    let (cmd, path, is_temp) = build_cmd(&opt)?;
+    let (cmd, path) = build_cmd(&opt)?;
     let query = get_query(cmd)?;
 
     eprintln!("{:?}", query);
@@ -27,8 +27,8 @@ pub fn run() -> Result<(), Error> {
 
     print!("{}", String::from_utf8(output.stdout)?);
 
-    if is_temp {
-        std::fs::remove_file(path)?;
+    if let InputFile::Stdin(file) = path {
+        std::fs::remove_file(file)?;
     }
 
     Ok(())
@@ -36,12 +36,12 @@ pub fn run() -> Result<(), Error> {
 
 pub fn build_output_cmd(
     cmd: &str,
-    input: &Path,
+    input: &InputFile,
     args: &[String],
     output: &str,
 ) -> Result<Command, Error> {
     let f = Command::new("cat")
-        .arg(input.display().to_string())
+        .arg(input.to_string())
         .stdout(Stdio::piped())
         .spawn()?;
 
@@ -51,24 +51,36 @@ pub fn build_output_cmd(
     Ok(jq)
 }
 
-pub fn build_cmd(opt: &Opt) -> Result<(Command, PathBuf, bool), Error> {
-    let (path, is_temp) = match &opt.filename {
-        Some(filename) if filename.exists() => (filename.clone(), false),
-        Some(_) | None => {
+#[derive(Debug, PartialEq, Eq)]
+pub enum InputFile<'a> {
+    Stdin(PathBuf),
+    File(&'a Path),
+}
+
+impl<'a> std::fmt::Display for InputFile<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Stdin(file) => file.display().fmt(f),
+            Self::File(file) => file.display().fmt(f),
+        }
+    }
+}
+
+pub fn build_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
+    let path = match &opt.filename {
+        Some(filename) => InputFile::File(filename),
+        None => {
             let mut stdin = std::io::stdin();
             let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
             std::io::copy(&mut stdin, &mut file)?;
-            (path, true)
+            InputFile::Stdin(path)
         }
     };
 
-    let input = path.display();
-    let jq_bin = opt.jq_bin.as_str();
+    let input = path.to_string();
+    let jq_bin = &opt.jq_bin;
 
-    let echo = Command::new("echo")
-        .arg("")
-        .stdout(Stdio::piped())
-        .spawn()?;
+    let echo = Command::new("echo").stdout(Stdio::piped()).spawn()?;
 
     let jq_prefix = format!(
         "{jq_bin} --color-output --raw-output {}",
@@ -106,7 +118,7 @@ pub fn build_cmd(opt: &Opt) -> Result<(Command, PathBuf, bool), Error> {
         .stdin(echo.stdout.unwrap())
         .stdout(Stdio::piped());
 
-    Ok((cmd, path, is_temp))
+    Ok((cmd, path))
 }
 
 pub fn get_query(mut fzf: Command) -> Result<String, Error> {
