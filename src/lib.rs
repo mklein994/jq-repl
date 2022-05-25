@@ -154,7 +154,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         .args(bind("alt-s", "alt-S", "--slurp"))
         .args(bind("alt-c", "alt-C", "--compact-output"))
         .arg(format!(
-            "--bind=ctrl-space:change-preview:{jq_prefix} --monochrome-output {{q}} {input} | \
+            "--bind=ctrl-space:preview:{jq_prefix} --monochrome-output {{q}} {input} | \
              gron --colorize"
         ))
         .stdin(echo.stdout.unwrap())
