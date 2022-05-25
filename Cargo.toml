@@ -6,5 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+atty = "0.2.14"
 clap = { version = "3.1.15", features = ["derive", "env"] }
 tempfile = "3.3.0"
