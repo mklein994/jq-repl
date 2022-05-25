@@ -185,6 +185,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn check_fzf_args() {
         let name = env!("CARGO_CRATE_NAME");
         let opt = Opt::parse_from(&[
