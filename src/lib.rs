@@ -10,7 +10,7 @@ use std::process::{Command, Stdio};
 pub struct Opt {
     /// Executable to call
     #[clap(long, env, default_value = "jq")]
-    jq_bin: String,
+    bin: String,
 
     /// Path to the history file (use ^P and ^N to navigate it)
     ///
@@ -41,7 +41,7 @@ pub fn run() -> Result<(), Error> {
 
     eprintln!("{:?}", if query.is_empty() { "." } else { &query });
 
-    let mut output_cmd = build_output_cmd(&opt.jq_bin, &path, &opt.args, &query)?;
+    let mut output_cmd = build_output_cmd(&opt.bin, &path, &opt.args, &query)?;
 
     let is_output_interactive = atty::is(atty::Stream::Stdout);
     if is_output_interactive {
@@ -114,7 +114,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     };
 
     let input = path.to_string();
-    let jq_bin = &opt.jq_bin;
+    let jq_bin = &opt.bin;
 
     let echo = Command::new("echo").stdout(Stdio::piped()).spawn()?;
 
