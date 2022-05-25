@@ -118,7 +118,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
 
     let echo = Command::new("echo").stdout(Stdio::piped()).spawn()?;
 
-    let mut jq_prefix = format!("{jq_bin} --color-output --raw-output");
+    let mut jq_prefix = format!("{jq_bin} --color-output --raw-output -L~/.local/lib/jq/.jq");
     let args = opt.args.join(" ");
     if !args.is_empty() {
         jq_prefix.push(' ');
