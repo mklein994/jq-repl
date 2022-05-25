@@ -12,8 +12,22 @@ pub struct Opt {
     #[clap(long, env, default_value = "jq")]
     jq_bin: String,
 
+    /// Path to the history file (use ^P and ^N to navigate it)
+    ///
+    /// History is only recorded when query is accepted (enter is pressed).
+    #[clap(long, env = "JQ_REPL_HISTORY", default_value = concat!(env!("HOME"), "/.jq_repl_history"))]
+    history_file: PathBuf,
+
     /// Name of the JSON file to read from (defaults to standard input)
     filename: Option<PathBuf>,
+
+    /// Pager to pipe output to
+    #[clap(long, default_value = "less")]
+    pager: String,
+
+    /// Options to pass to the pager
+    #[clap(long, allow_hyphen_values = true)]
+    pager_options: Vec<String>,
 
     /// Additional args passed to `jq`
     #[clap(last = true)]
@@ -22,14 +36,28 @@ pub struct Opt {
 
 pub fn run() -> Result<(), Error> {
     let opt = Opt::parse();
-    let (cmd, path) = build_cmd(&opt)?;
-    let query = get_query(cmd)?;
+    let (fzf_cmd, path) = build_fzf_cmd(&opt)?;
+    let query = get_query(fzf_cmd)?;
 
     eprintln!("{:?}", if query.is_empty() { "." } else { &query });
 
-    let output = build_output_cmd(&opt.jq_bin, &path, &opt.args, &query)?.output()?;
+    let mut output_cmd = build_output_cmd(&opt.jq_bin, &path, &opt.args, &query)?;
 
-    print!("{}", String::from_utf8(output.stdout)?);
+    let is_output_interactive = atty::is(atty::Stream::Stdout);
+    if is_output_interactive {
+        output_cmd.stdout(Stdio::piped());
+
+        let fzf_handle = output_cmd.spawn()?;
+
+        Command::new(&opt.pager)
+            .args(&opt.pager_options)
+            .stdin(fzf_handle.stdout.unwrap())
+            .stdout(Stdio::inherit())
+            .spawn()?
+            .wait()?;
+    } else {
+        output_cmd.stdout(Stdio::inherit()).spawn()?.wait()?;
+    }
 
     Ok(())
 }
@@ -74,7 +102,7 @@ impl<'a> std::fmt::Display for InputFile<'a> {
     }
 }
 
-pub fn build_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
+pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     let path = match &opt.filename {
         Some(filename) => InputFile::File(filename),
         None => {
@@ -97,7 +125,7 @@ pub fn build_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         jq_prefix.push_str(&args);
     }
 
-    let jq_history_file = Path::new(concat!(env!("HOME"), "/.jq_repl_history")).display();
+    let jq_history_file = opt.history_file.display();
 
     let bind = |key: &str, undo_key: &str, value: &str| {
         [
@@ -106,8 +134,8 @@ pub fn build_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         ]
     };
 
-    let mut cmd = Command::new("fzf");
-    cmd.args(["--disabled", "--print-query", "--preview-window=up,99%"])
+    let mut fzf = Command::new("fzf");
+    fzf.args(["--disabled", "--print-query", "--preview-window=up,99%"])
         .arg(format!("--history={jq_history_file}"))
         .arg(format!("--preview={jq_prefix} {{q}} {input}"))
         .arg(format!(
@@ -132,7 +160,7 @@ pub fn build_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         .stdin(echo.stdout.unwrap())
         .stdout(Stdio::piped());
 
-    Ok((cmd, path))
+    Ok((fzf, path))
 }
 
 pub fn get_query(mut fzf: Command) -> Result<String, Error> {
@@ -144,5 +172,48 @@ pub fn get_query(mut fzf: Command) -> Result<String, Error> {
         Ok(out.to_string())
     } else {
         Err(Error::Fzf(output.status))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn check_args() {
+        <Opt as clap::CommandFactory>::command().debug_assert();
+    }
+
+    #[test]
+    fn check_fzf_args() {
+        let name = env!("CARGO_CRATE_NAME");
+        let opt = Opt::parse_from(&[
+            name,
+            "--history-file",
+            "/tmp/.jq_repl_history",
+            "/tmp/foo.json",
+        ]);
+        let (fzf, _) = build_fzf_cmd(&opt).unwrap();
+        let args: Vec<_> = fzf.get_args().collect();
+
+        assert_eq!(
+            vec![
+                "--disabled",
+                "--print-query",
+                "--preview-window=up,99%",
+                "--history=/tmp/.jq_repl_history",
+                "--preview=jq --color-output --raw-output {q} /tmp/foo.json",
+                "--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:\
+                 toggle-preview-wrap,home:preview-top,end:preview-bottom",
+                "--bind=alt-s:preview:jq --color-output --raw-output --slurp {q} /tmp/foo.json",
+                "--bind=alt-S:preview:jq --color-output --raw-output {q} /tmp/foo.json",
+                "--bind=alt-c:preview:jq --color-output --raw-output --compact-output {q} \
+                 /tmp/foo.json",
+                "--bind=alt-C:preview:jq --color-output --raw-output {q} /tmp/foo.json",
+                "--bind=ctrl-space:change-preview:jq --color-output --raw-output \
+                 --monochrome-output {q} /tmp/foo.json | gron --colorize",
+            ],
+            args
+        );
     }
 }
