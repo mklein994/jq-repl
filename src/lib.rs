@@ -6,6 +6,8 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
+const JQ_ARG_PREFIX: &[&str] = &["--color-output", "--raw-output", "-L~/.local/lib/jq/.jq"];
+
 #[derive(Debug, clap::Parser)]
 pub struct Opt {
     /// Executable to call
@@ -41,41 +43,41 @@ pub fn run() -> Result<(), Error> {
 
     eprintln!("{:?}", if query.is_empty() { "." } else { &query });
 
-    let mut output_cmd = build_output_cmd(&opt.bin, &path, &opt.args, &query)?;
+    let mut jq_cmd = build_jq_cmd(&opt.bin, &path, &opt.args, &query)?;
 
     let is_output_interactive = atty::is(atty::Stream::Stdout);
     if is_output_interactive {
-        output_cmd.stdout(Stdio::piped());
+        jq_cmd.stdout(Stdio::piped());
 
-        let fzf_handle = output_cmd.spawn()?;
+        let jq = jq_cmd.spawn()?;
 
         Command::new(&opt.pager)
             .args(&opt.pager_options)
-            .stdin(fzf_handle.stdout.unwrap())
+            .stdin(jq.stdout.unwrap())
             .stdout(Stdio::inherit())
             .spawn()?
             .wait()?;
     } else {
-        output_cmd.stdout(Stdio::inherit()).spawn()?.wait()?;
+        jq_cmd.stdout(Stdio::inherit()).spawn()?.wait()?;
     }
 
     Ok(())
 }
 
-pub fn build_output_cmd(
+pub fn build_jq_cmd(
     jq_bin: &str,
-    input: &InputFile,
+    input_file: &InputFile,
     args: &[String],
     output: &str,
 ) -> Result<Command, Error> {
-    let file = match input {
+    let file = match input_file {
         InputFile::File(file) => File::open(file)?,
         InputFile::Stdin(stdin) => File::open(stdin)?,
     };
 
     let mut jq = Command::new(jq_bin);
 
-    jq.args(args).arg(output).stdin(file);
+    jq.args(JQ_ARG_PREFIX).args(args).arg(output).stdin(file);
     Ok(jq)
 }
 
@@ -107,37 +109,40 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         Some(filename) => InputFile::File(filename),
         None => {
             let mut stdin = std::io::stdin();
-            let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
+            let (mut file, filename) = tempfile::NamedTempFile::new()?.keep()?;
             std::io::copy(&mut stdin, &mut file)?;
-            InputFile::Stdin(path)
+            InputFile::Stdin(filename)
         }
     };
 
-    let input = path.to_string();
+    let input_file = path.to_string();
     let jq_bin = &opt.bin;
 
     let echo = Command::new("echo").stdout(Stdio::piped()).spawn()?;
 
-    let mut jq_prefix = format!("{jq_bin} --color-output --raw-output -L~/.local/lib/jq/.jq");
+    let mut jq_arg_prefix = JQ_ARG_PREFIX.join(" ");
+
     let args = opt.args.join(" ");
     if !args.is_empty() {
-        jq_prefix.push(' ');
-        jq_prefix.push_str(&args);
+        jq_arg_prefix.push(' ');
+        jq_arg_prefix.push_str(&args);
     }
 
     let jq_history_file = opt.history_file.display();
 
     let bind = |key: &str, undo_key: &str, value: &str| {
         [
-            format!("--bind={key}:preview:{jq_prefix} {value} {{q}} {input}"),
-            format!("--bind={undo_key}:preview:{jq_prefix} {{q}} {input}"),
+            format!("--bind={key}:preview:{jq_bin} {jq_arg_prefix} {value} {{q}} {input_file}"),
+            format!("--bind={undo_key}:preview:{jq_bin} {jq_arg_prefix} {{q}} {input_file}"),
         ]
     };
 
     let mut fzf = Command::new("fzf");
     fzf.args(["--disabled", "--print-query", "--preview-window=up,99%"])
         .arg(format!("--history={jq_history_file}"))
-        .arg(format!("--preview={jq_prefix} {{q}} {input}"))
+        .arg(format!(
+            "--preview={jq_bin} {jq_arg_prefix} {{q}} {input_file}"
+        ))
         .arg(format!(
             "--bind={}",
             [
@@ -154,8 +159,8 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         .args(bind("alt-s", "alt-S", "--slurp"))
         .args(bind("alt-c", "alt-C", "--compact-output"))
         .arg(format!(
-            "--bind=ctrl-space:preview:{jq_prefix} --monochrome-output {{q}} {input} | \
-             gron --colorize"
+            "--bind=ctrl-space:preview:{jq_bin} {jq_arg_prefix} --monochrome-output {{q}} \
+             {input_file} | gron --colorize"
         ))
         .stdin(echo.stdout.unwrap())
         .stdout(Stdio::piped());
