@@ -9,6 +9,7 @@ use std::process::{Command, Stdio};
 const JQ_ARG_PREFIX: &[&str] = &["-L", "~/.local/lib/jq/.jq", "--raw-output"];
 
 #[derive(Debug, clap::Parser)]
+#[clap(version, about)]
 pub struct Opt {
     /// Executable to call
     #[clap(long, env, default_value = "jq")]
