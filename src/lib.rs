@@ -6,7 +6,7 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-const JQ_ARG_PREFIX: &[&str] = &["--color-output", "--raw-output", "-L~/.local/lib/jq/.jq"];
+const JQ_ARG_PREFIX: &[&str] = &["-L", "~/.local/lib/jq/.jq"];
 
 #[derive(Debug, clap::Parser)]
 pub struct Opt {
@@ -120,7 +120,9 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
 
     let echo = Command::new("echo").stdout(Stdio::piped()).spawn()?;
 
-    let mut jq_arg_prefix = JQ_ARG_PREFIX.join(" ");
+    let mut jq_arg_prefix = [JQ_ARG_PREFIX, &["--raw-output", "--color-output"]]
+        .concat()
+        .join(" ");
 
     let args = opt.args.join(" ");
     if !args.is_empty() {
