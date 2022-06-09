@@ -12,7 +12,7 @@ const JQ_ARG_PREFIX: &[&str] = &["-L", "~/.local/lib/jq/.jq", "--raw-output"];
 #[clap(version, about)]
 pub struct Opt {
     /// Executable to call
-    #[clap(long, env, default_value = "gojq")]
+    #[clap(long, env = "JQ_BIN", default_value = "gojq")]
     bin: String,
 
     /// Path to the history file (use ^P and ^N to navigate it)
