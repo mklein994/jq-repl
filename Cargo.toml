@@ -8,5 +8,5 @@ description = "Interactively explore JSON with fzf and jq."
 
 [dependencies]
 atty = "0.2.14"
-clap = { version = "3.1.15", features = ["cargo", "derive", "env"] }
+clap = { version = "3.1.15", features = ["cargo", "deprecated", "derive", "env"] }
 tempfile = "3.3.0"
