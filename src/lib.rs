@@ -8,7 +8,7 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-const JQ_ARG_PREFIX: &[&str] = &["-L", "~/.local/lib/jq/.jq", "--raw-output"];
+const DEFAULT_JQ_ARG_PREFIX: &[&str] = &["-L", "~/.local/lib/jq/.jq", "--raw-output"];
 
 pub fn run() -> Result<(), Error> {
     let opt = Opt::parse();
@@ -51,7 +51,10 @@ pub fn build_jq_cmd(
 
     let mut jq = Command::new(jq_bin);
 
-    jq.args(JQ_ARG_PREFIX).args(args).arg(output).stdin(file);
+    jq.args(DEFAULT_JQ_ARG_PREFIX)
+        .args(args)
+        .arg(output)
+        .stdin(file);
     Ok(jq)
 }
 
@@ -94,7 +97,9 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
 
     let echo = Command::new("echo").stdout(Stdio::piped()).spawn()?;
 
-    let mut jq_arg_prefix = [JQ_ARG_PREFIX, &["--color-output"]].concat().join(" ");
+    let mut jq_arg_prefix = [DEFAULT_JQ_ARG_PREFIX, &["--color-output"]]
+        .concat()
+        .join(" ");
 
     let args = opt.args.join(" ");
     if !args.is_empty() {
