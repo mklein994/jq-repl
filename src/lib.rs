@@ -1,41 +1,14 @@
 mod error;
+mod opt;
 
 use clap::Parser;
 pub use error::Error;
+use opt::Opt;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 const JQ_ARG_PREFIX: &[&str] = &["-L", "~/.local/lib/jq/.jq", "--raw-output"];
-
-#[derive(Debug, clap::Parser)]
-#[clap(version, about)]
-pub struct Opt {
-    /// Executable to call
-    #[clap(long, env = "JQ_BIN", default_value = "gojq")]
-    bin: String,
-
-    /// Path to the history file (use ^P and ^N to navigate it)
-    ///
-    /// History is only recorded when query is accepted (enter is pressed).
-    #[clap(long, env = "JQ_REPL_HISTORY", default_value = concat!(env!("HOME"), "/.jq_repl_history"))]
-    history_file: PathBuf,
-
-    /// Name of the JSON file to read from (defaults to standard input)
-    filename: Option<PathBuf>,
-
-    /// Pager to pipe output to
-    #[clap(long, default_value = "less")]
-    pager: String,
-
-    /// Options to pass to the pager
-    #[clap(long, allow_hyphen_values = true)]
-    pager_options: Vec<String>,
-
-    /// Additional args passed to `jq`
-    #[clap(last = true)]
-    args: Vec<String>,
-}
 
 pub fn run() -> Result<(), Error> {
     let opt = Opt::parse();
