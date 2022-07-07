@@ -17,18 +17,18 @@ const DEFAULT_JQ_ARG_PREFIX: &[&str] = &[
 ];
 
 pub fn run() -> Result<(), Error> {
-    let opt = Opt::parse();
+    let mut opt = Opt::parse();
+    opt.null_input = opt.null_input || (atty::is(atty::Stream::Stdin) && opt.filename.is_none());
+    if opt.null_input {
+        opt.args.push("-n".to_string());
+    }
+
     let (fzf_cmd, path) = build_fzf_cmd(&opt)?;
     let query = get_query(fzf_cmd)?;
 
     eprintln!("{:?}", if query.is_empty() { "." } else { &query });
 
-    let mut args = opt.args.clone();
-    if opt.no_wait {
-        args.push("-n".to_string());
-    }
-
-    let mut jq_cmd = build_jq_cmd(&opt.bin, &path, opt.no_default_args, &args, &query)?;
+    let mut jq_cmd = build_jq_cmd(&opt.bin, &path, opt.no_default_args, &opt.args, &query)?;
 
     let is_output_interactive = atty::is(atty::Stream::Stdout);
     if is_output_interactive {
@@ -98,7 +98,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         Some(filename) => InputFile::File(filename),
         None => {
             let (mut file, filename) = tempfile::NamedTempFile::new()?.keep()?;
-            if !opt.no_wait {
+            if !opt.null_input {
                 std::io::copy(&mut std::io::stdin(), &mut file)?;
             }
             InputFile::Stdin(filename)
@@ -118,10 +118,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
             .join(" ")
     };
 
-    let mut args = opt.args.clone();
-    if opt.no_wait {
-        args.push("-n".to_string());
-    }
+    let args = &opt.args;
     if !args.is_empty() {
         jq_arg_prefix.push(' ');
         jq_arg_prefix.push_str(&args.join(" "));
