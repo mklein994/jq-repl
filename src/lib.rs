@@ -8,7 +8,13 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-const DEFAULT_JQ_ARG_PREFIX: &[&str] = &["-L", "~/.local/lib/jq/.jq", "--raw-output"];
+const DEFAULT_JQ_ARG_PREFIX: &[&str] = &[
+    "-L",
+    "~/.jq", // setup the module path
+    "-L",
+    "~/.jq/.jq", // import all modules
+    "--raw-output",
+];
 
 pub fn run() -> Result<(), Error> {
     let opt = Opt::parse();
