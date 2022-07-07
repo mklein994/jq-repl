@@ -13,6 +13,10 @@ pub struct Opt {
     #[clap(long, env = "JQ_REPL_HISTORY", default_value = concat!(env!("HOME"), "/.jq_repl_history"))]
     pub history_file: PathBuf,
 
+    /// Disable the default arguments
+    #[clap(long, action(clap::ArgAction::SetTrue))]
+    pub no_default_args: bool,
+
     /// Name of the JSON file to read from (defaults to standard input)
     pub filename: Option<PathBuf>,
 
