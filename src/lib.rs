@@ -23,7 +23,12 @@ pub fn run() -> Result<(), Error> {
 
     eprintln!("{:?}", if query.is_empty() { "." } else { &query });
 
-    let mut jq_cmd = build_jq_cmd(&opt.bin, &path, opt.no_default_args, &opt.args, &query)?;
+    let mut args = opt.args.clone();
+    if opt.no_wait {
+        args.push("-n".to_string());
+    }
+
+    let mut jq_cmd = build_jq_cmd(&opt.bin, &path, opt.no_default_args, &args, &query)?;
 
     let is_output_interactive = atty::is(atty::Stream::Stdout);
     if is_output_interactive {
@@ -92,9 +97,10 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     let path = match &opt.filename {
         Some(filename) => InputFile::File(filename),
         None => {
-            let mut stdin = std::io::stdin();
             let (mut file, filename) = tempfile::NamedTempFile::new()?.keep()?;
-            std::io::copy(&mut stdin, &mut file)?;
+            if !opt.no_wait {
+                std::io::copy(&mut std::io::stdin(), &mut file)?;
+            }
             InputFile::Stdin(filename)
         }
     };
@@ -112,10 +118,13 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
             .join(" ")
     };
 
-    let args = opt.args.join(" ");
+    let mut args = opt.args.clone();
+    if opt.no_wait {
+        args.push("-n".to_string());
+    }
     if !args.is_empty() {
         jq_arg_prefix.push(' ');
-        jq_arg_prefix.push_str(&args);
+        jq_arg_prefix.push_str(&args.join(" "));
     }
 
     let jq_history_file = opt.history_file.display();
