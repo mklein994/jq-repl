@@ -134,32 +134,37 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     };
 
     let mut fzf = Command::new("fzf");
-    fzf.args(["--disabled", "--print-query", "--preview-window=up,99%"])
-        .arg(format!("--history={jq_history_file}"))
-        .arg(format!(
-            "--preview={jq_bin} {jq_arg_prefix} {{q}} {input_file}"
-        ))
-        .arg(format!(
-            "--bind={}",
-            [
-                ("ctrl-k", "kill-line"),
-                ("pgup", "preview-page-up"),
-                ("pgdn", "preview-page-down"),
-                ("alt-w", "toggle-preview-wrap"),
-                ("home", "preview-top"),
-                ("end", "preview-bottom"),
-            ]
-            .map(|(key, value)| [key, value].join(":"))
-            .join(","),
-        ))
-        .args(bind("alt-s", "alt-S", "--slurp"))
-        .args(bind("alt-c", "alt-C", "--compact-output"))
-        .arg(format!(
-            "--bind=ctrl-space:preview:{jq_bin} {jq_arg_prefix} --monochrome-output {{q}} \
+    fzf.args([
+        "--disabled",
+        "--print-query",
+        "--preview-window=up,99%,border-bottom",
+        "--info=hidden",
+    ])
+    .arg(format!("--history={jq_history_file}"))
+    .arg(format!(
+        "--preview={jq_bin} {jq_arg_prefix} {{q}} {input_file}"
+    ))
+    .arg(format!(
+        "--bind={}",
+        [
+            ("ctrl-k", "kill-line"),
+            ("pgup", "preview-page-up"),
+            ("pgdn", "preview-page-down"),
+            ("alt-w", "toggle-preview-wrap"),
+            ("home", "preview-top"),
+            ("end", "preview-bottom"),
+        ]
+        .map(|(key, value)| [key, value].join(":"))
+        .join(","),
+    ))
+    .args(bind("alt-s", "alt-S", "--slurp"))
+    .args(bind("alt-c", "alt-C", "--compact-output"))
+    .arg(format!(
+        "--bind=ctrl-space:preview:{jq_bin} {jq_arg_prefix} --monochrome-output {{q}} \
              {input_file} | gron --colorize"
-        ))
-        .stdin(echo.stdout.unwrap())
-        .stdout(Stdio::piped());
+    ))
+    .stdin(echo.stdout.unwrap())
+    .stdout(Stdio::piped());
 
     Ok((fzf, path))
 }
