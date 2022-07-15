@@ -24,6 +24,10 @@ pub struct Opt {
     #[clap(long = "no-default-args", action(clap::ArgAction::SetFalse))]
     pub use_default_args: bool,
 
+    /// The flag passed to jq inside fzf to show color
+    #[clap(long, allow_hyphen_values = true, default_value = "-C")]
+    pub color_flag: String,
+
     /// Name of the JSON file to read from (defaults to standard input)
     pub filename: Option<PathBuf>,
 

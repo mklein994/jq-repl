@@ -111,11 +111,11 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     let echo = Command::new("echo").stdout(Stdio::piped()).spawn()?;
 
     let mut jq_arg_prefix = if opt.use_default_args {
-        [DEFAULT_JQ_ARG_PREFIX, &["--color-output"]]
+        [DEFAULT_JQ_ARG_PREFIX, &[&opt.color_flag]]
             .concat()
             .join(" ")
     } else {
-        "--color-output".to_string()
+        opt.color_flag.to_string()
     };
 
     let args = &opt.args;
