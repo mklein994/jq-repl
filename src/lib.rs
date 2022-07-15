@@ -189,38 +189,4 @@ mod tests {
     fn check_args() {
         <Opt as clap::CommandFactory>::command().debug_assert();
     }
-
-    #[test]
-    #[ignore]
-    fn check_fzf_args() {
-        let name = env!("CARGO_CRATE_NAME");
-        let opt = Opt::parse_from(&[
-            name,
-            "--history-file",
-            "/tmp/.jq_repl_history",
-            "/tmp/foo.json",
-        ]);
-        let (fzf, _) = build_fzf_cmd(&opt).unwrap();
-        let args: Vec<_> = fzf.get_args().collect();
-
-        assert_eq!(
-            vec![
-                "--disabled",
-                "--print-query",
-                "--preview-window=up,99%",
-                "--history=/tmp/.jq_repl_history",
-                "--preview=jq --color-output --raw-output {q} /tmp/foo.json",
-                "--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:\
-                 toggle-preview-wrap,home:preview-top,end:preview-bottom",
-                "--bind=alt-s:preview:jq --color-output --raw-output --slurp {q} /tmp/foo.json",
-                "--bind=alt-S:preview:jq --color-output --raw-output {q} /tmp/foo.json",
-                "--bind=alt-c:preview:jq --color-output --raw-output --compact-output {q} \
-                 /tmp/foo.json",
-                "--bind=alt-C:preview:jq --color-output --raw-output {q} /tmp/foo.json",
-                "--bind=ctrl-space:change-preview:jq --color-output --raw-output \
-                 --monochrome-output {q} /tmp/foo.json | gron --colorize",
-            ],
-            args
-        );
-    }
 }
