@@ -21,8 +21,8 @@ pub struct Opt {
     pub null_input: bool,
 
     /// Disable the default arguments
-    #[clap(long, action(clap::ArgAction::SetTrue))]
-    pub no_default_args: bool,
+    #[clap(long = "no-default-args", action(clap::ArgAction::SetFalse))]
+    pub use_default_args: bool,
 
     /// Name of the JSON file to read from (defaults to standard input)
     pub filename: Option<PathBuf>,

@@ -28,7 +28,7 @@ pub fn run() -> Result<(), Error> {
 
     eprintln!("{:?}", if query.is_empty() { "." } else { &query });
 
-    let mut jq_cmd = build_jq_cmd(&opt.bin, &path, opt.no_default_args, &opt.args, &query)?;
+    let mut jq_cmd = build_jq_cmd(&opt.bin, &path, opt.use_default_args, &opt.args, &query)?;
 
     let is_output_interactive = atty::is(atty::Stream::Stdout);
     if is_output_interactive {
@@ -52,7 +52,7 @@ pub fn run() -> Result<(), Error> {
 pub fn build_jq_cmd(
     jq_bin: &str,
     input_file: &InputFile,
-    no_default_args: bool,
+    use_default_args: bool,
     args: &[String],
     output: &str,
 ) -> Result<Command, Error> {
@@ -63,7 +63,7 @@ pub fn build_jq_cmd(
 
     let mut jq = Command::new(jq_bin);
 
-    if !no_default_args {
+    if use_default_args {
         jq.args(DEFAULT_JQ_ARG_PREFIX);
     }
     jq.args(args).arg(output).stdin(file);
@@ -110,12 +110,12 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
 
     let echo = Command::new("echo").stdout(Stdio::piped()).spawn()?;
 
-    let mut jq_arg_prefix = if opt.no_default_args {
-        "--color-output".to_string()
-    } else {
+    let mut jq_arg_prefix = if opt.use_default_args {
         [DEFAULT_JQ_ARG_PREFIX, &["--color-output"]]
             .concat()
             .join(" ")
+    } else {
+        "--color-output".to_string()
     };
 
     let args = &opt.args;
