@@ -129,7 +129,12 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         }
     };
 
-    let input_file = path.to_string();
+    let input_file = if opt.null_input {
+        String::new()
+    } else {
+        path.to_string()
+    };
+
     let jq_bin = &opt.bin;
 
     let echo = Command::new("echo").stdout(Stdio::piped()).spawn()?;
