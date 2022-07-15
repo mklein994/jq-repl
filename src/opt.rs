@@ -20,6 +20,10 @@ pub struct Opt {
     #[clap(short, long)]
     pub null_input: bool,
 
+    /// Print the fzf command that would be run to stdout and exit.
+    #[clap(long)]
+    pub show_fzf_command: bool,
+
     /// Disable the default arguments
     #[clap(long = "no-default-args", action(clap::ArgAction::SetFalse))]
     pub use_default_args: bool,

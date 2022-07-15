@@ -24,6 +24,30 @@ pub fn run() -> Result<(), Error> {
     }
 
     let (fzf_cmd, path) = build_fzf_cmd(&opt)?;
+
+    if opt.show_fzf_command {
+        println!(
+            "{} \\",
+            shell_quote::bash::quote(fzf_cmd.get_program())
+                .to_str()
+                .unwrap()
+        );
+        println!(
+            "{}",
+            fzf_cmd
+                .get_args()
+                .map(|arg| {
+                    shell_quote::bash::quote(arg)
+                        .to_str()
+                        .expect("Failed to convert arg to UTF-8 string")
+                        .to_string()
+                })
+                .collect::<Vec<_>>()
+                .join(" \\\n"),
+        );
+        return Ok(());
+    }
+
     let query = get_query(fzf_cmd)?;
 
     eprintln!("{:?}", if query.is_empty() { "." } else { &query });
