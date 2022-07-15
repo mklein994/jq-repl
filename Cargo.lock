@@ -125,6 +125,7 @@ version = "0.2.0"
 dependencies = [
  "atty",
  "clap",
+ "shell-quote",
  "tempfile",
 ]
 
@@ -205,6 +206,12 @@ checksum = "3acd125665422973a33ac9d3dd2df85edad0f4ae9b00dafb1a05e43a9f5ef8e7"
 dependencies = [
  "winapi",
 ]
+
+[[package]]
+name = "shell-quote"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab31b1e46a3f14300977ece8c355009deddc6c531de49d55951e795bbad42957"
 
 [[package]]
 name = "strsim"
