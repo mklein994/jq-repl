@@ -161,7 +161,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     .args(bind("alt-c", "alt-C", "--compact-output"))
     .arg(format!(
         "--bind=ctrl-space:preview:{jq_bin} {jq_arg_prefix} --monochrome-output {{q}} \
-             {input_file} | gron --colorize"
+         {input_file} | gron --colorize"
     ))
     .stdin(echo.stdout.unwrap())
     .stdout(Stdio::piped());
