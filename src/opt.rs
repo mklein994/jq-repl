@@ -47,3 +47,13 @@ pub struct Opt {
     #[clap(last = true)]
     pub args: Vec<String>,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn app_sanity_check() {
+        <Opt as clap::CommandFactory>::command().debug_assert();
+    }
+}
