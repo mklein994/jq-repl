@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, clap::Parser)]
 #[clap(version, about)]
 pub struct Opt {
@@ -42,6 +43,10 @@ pub struct Opt {
     /// Options to pass to the pager
     #[clap(long, allow_hyphen_values = true)]
     pub pager_options: Vec<String>,
+
+    /// Show versions of all relevant executables
+    #[clap(long)]
+    pub version_verbose: bool,
 
     /// Additional args passed to `jq`
     #[clap(last = true)]

@@ -18,6 +18,29 @@ const DEFAULT_JQ_ARG_PREFIX: &[&str] = &[
 
 pub fn run() -> Result<(), Error> {
     let mut opt = Opt::parse();
+
+    if opt.version_verbose {
+        let print_cmd_version = |name: &str, version_flag: &str| {
+            let version = String::from_utf8(
+                Command::new(name)
+                    .arg(version_flag)
+                    .output()
+                    .unwrap()
+                    .stdout,
+            )
+            .unwrap();
+            println!("{}:\t{}", name, version.trim());
+        };
+
+        println!("{} {}", clap::crate_name!(), clap::crate_version!());
+        println!();
+        print_cmd_version("fzf", "--version");
+        print_cmd_version(&opt.bin, "--version");
+        print_cmd_version(&opt.pager, "--version");
+
+        return Ok(());
+    }
+
     opt.null_input = opt.null_input || (atty::is(atty::Stream::Stdin) && opt.filename.is_none());
     if opt.null_input {
         opt.args.push("-n".to_string());
