@@ -22,7 +22,7 @@ $'--bind=alt-s:preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C --slurp {q} /t
 $'--bind=alt-S:preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json' \
 $'--bind=alt-c:preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C --compact-output {q} /tmp/foo.json' \
 $'--bind=alt-C:preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json' \
-$'--bind=ctrl-space:preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C --monochrome-output {q} /tmp/foo.json | gron --colorize'
+$'--bind=ctrl-space:preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | gron --colorize'
 "#;
 
     assert_eq!(expected, stdout);

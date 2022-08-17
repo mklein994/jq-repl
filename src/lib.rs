@@ -170,6 +170,8 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         opt.color_flag.to_string()
     };
 
+    let no_color_flag = &opt.no_color_flag;
+
     let args = &opt.args;
     if !args.is_empty() {
         jq_arg_prefix.push(' ');
@@ -212,7 +214,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     .args(bind("alt-s", "alt-S", "--slurp"))
     .args(bind("alt-c", "alt-C", "--compact-output"))
     .arg(format!(
-        "--bind=ctrl-space:preview:{jq_bin} {jq_arg_prefix} --monochrome-output {{q}} \
+        "--bind=ctrl-space:preview:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} \
          {input_file} | gron --colorize"
     ))
     .stdin(echo.stdout.unwrap())
