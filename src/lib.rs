@@ -212,7 +212,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         .join(","),
     ))
     .args(bind("alt-s", "alt-S", "--slurp"))
-    .args(bind("alt-c", "alt-C", "--compact-output"))
+    .args(bind("alt-c", "alt-C", &opt.compact_flag))
     .arg(format!(
         "--bind=ctrl-space:preview:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} \
          {input_file} | gron --colorize"

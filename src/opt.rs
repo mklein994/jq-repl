@@ -37,6 +37,10 @@ pub struct Opt {
     #[clap(long, allow_hyphen_values = true, default_value = "-M")]
     pub no_color_flag: String,
 
+    /// The flag passed to jq inside fzf to use a compact format
+    #[clap(long, allow_hyphen_values = true, default_value = "-c")]
+    pub compact_flag: String,
+
     /// Name of the JSON file to read from (defaults to standard input)
     pub filename: Option<PathBuf>,
 
