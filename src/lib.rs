@@ -29,7 +29,7 @@ pub fn run() -> Result<(), Error> {
                     .stdout,
             )
             .unwrap();
-            println!("{}:\t{}", name, version.trim());
+            println!("{name}:\t{}", version.trim());
         };
 
         println!("{} {}", clap::crate_name!(), clap::crate_version!());
