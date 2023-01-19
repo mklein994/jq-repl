@@ -18,11 +18,12 @@ $'--info=hidden' \
 $'--history=/home/matthew/.jq_repl_history' \
 $'--preview=gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json' \
 $'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:toggle-preview-wrap,home:preview-top,end:preview-bottom' \
-$'--bind=alt-s:preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C --slurp {q} /tmp/foo.json' \
-$'--bind=alt-S:preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json' \
-$'--bind=alt-c:preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -c {q} /tmp/foo.json' \
-$'--bind=alt-C:preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json' \
-$'--bind=ctrl-space:preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | gron --colorize'
+$'--bind=alt-s:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C --slurp {q} /tmp/foo.json' \
+$'--bind=alt-S:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json' \
+$'--bind=alt-c:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -c {q} /tmp/foo.json' \
+$'--bind=alt-C:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json' \
+$'--bind=ctrl-space:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | gron --colorize' \
+$'--bind=alt-space:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json'
 "#;
 
     assert_eq!(expected, stdout);

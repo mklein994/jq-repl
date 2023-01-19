@@ -182,8 +182,10 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
 
     let bind = |key: &str, undo_key: &str, value: &str| {
         [
-            format!("--bind={key}:preview:{jq_bin} {jq_arg_prefix} {value} {{q}} {input_file}"),
-            format!("--bind={undo_key}:preview:{jq_bin} {jq_arg_prefix} {{q}} {input_file}"),
+            format!(
+                "--bind={key}:change-preview:{jq_bin} {jq_arg_prefix} {value} {{q}} {input_file}"
+            ),
+            format!("--bind={undo_key}:change-preview:{jq_bin} {jq_arg_prefix} {{q}} {input_file}"),
         ]
     };
 
@@ -214,8 +216,11 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     .args(bind("alt-s", "alt-S", "--slurp"))
     .args(bind("alt-c", "alt-C", &opt.compact_flag))
     .arg(format!(
-        "--bind=ctrl-space:preview:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file} | \
-         gron --colorize"
+        "--bind=ctrl-space:change-preview:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} \
+         {input_file} | gron --colorize"
+    ))
+    .arg(format!(
+        "--bind=alt-space:change-preview:{jq_bin} {jq_arg_prefix} {{q}} {input_file}"
     ))
     .stdin(echo.stdout.unwrap())
     .stdout(Stdio::piped());
