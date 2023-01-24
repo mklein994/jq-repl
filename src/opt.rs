@@ -8,6 +8,10 @@ pub struct Opt {
     #[arg(long, env = "JQ_BIN", default_value = "gojq")]
     pub bin: String,
 
+    /// Override the path to fzf
+    #[arg(long, env = "FZF_BIN", default_value = "fzf")]
+    pub fzf_bin: String,
+
     /// Path to the history file (use ^P and ^N to navigate it)
     ///
     /// History is only recorded when query is accepted (enter is pressed).

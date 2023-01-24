@@ -34,7 +34,7 @@ pub fn run() -> Result<(), Error> {
 
         println!("{} {}", clap::crate_name!(), clap::crate_version!());
         println!();
-        print_cmd_version("fzf", "--version");
+        print_cmd_version(&opt.fzf_bin, "--version");
         print_cmd_version(&opt.bin, "--version");
         print_cmd_version("bat", "--version");
         print_cmd_version(&opt.pager, "--version");
@@ -203,7 +203,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         format!("--bind={key}:execute:{jq_bin} {jq_arg_prefix} {{q}} {input_file} | {cmd}")
     };
 
-    let mut fzf = Command::new("fzf");
+    let mut fzf = Command::new(&opt.fzf_bin);
     fzf.args([
         "--disabled",
         "--print-query",
