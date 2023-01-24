@@ -36,6 +36,7 @@ pub fn run() -> Result<(), Error> {
         println!();
         print_cmd_version("fzf", "--version");
         print_cmd_version(&opt.bin, "--version");
+        print_cmd_version("bat", "--version");
         print_cmd_version(&opt.pager, "--version");
 
         return Ok(());
