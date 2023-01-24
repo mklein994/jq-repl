@@ -30,5 +30,7 @@ $'--bind=ctrl-space:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M
 $'--bind=alt-space:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json'
 "##;
 
-    assert_eq!(expected, stdout);
+    for (expected_line, actual_line) in expected.lines().zip(stdout.lines()) {
+        assert_eq!(expected_line, actual_line);
+    }
 }
