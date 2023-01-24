@@ -28,7 +28,12 @@ $'--bind=alt-S:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tm
 $'--bind=alt-c:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -c {q} /tmp/foo.json' \
 $'--bind=alt-C:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json' \
 $'--bind=ctrl-space:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | gron --colorize' \
-$'--bind=alt-space:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json'
+$'--bind=alt-space:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json' \
+$'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | nvim -c \'set ft=json\' -' \
+$'--bind=alt-v:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | vd -f json' \
+$'--bind=alt-V:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | vd -f csv' \
+$'--bind=alt-l:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json | less -R' \
+$'--bind=alt-L:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | bat -l json'
 "##;
 
     assert_eq!(

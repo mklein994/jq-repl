@@ -191,6 +191,17 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         ]
     };
 
+    let external = |key: &str, cmd: &str| {
+        format!(
+            "--bind={key}:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file} | \
+             {cmd}"
+        )
+    };
+
+    let external_with_color = |key: &str, cmd: &str| {
+        format!("--bind={key}:execute:{jq_bin} {jq_arg_prefix} {{q}} {input_file} | {cmd}")
+    };
+
     let mut fzf = Command::new("fzf");
     fzf.args([
         "--disabled",
@@ -224,6 +235,11 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     .arg(format!(
         "--bind=alt-space:change-preview:{jq_bin} {jq_arg_prefix} {{q}} {input_file}"
     ))
+    .arg(external("alt-e", "nvim -c 'set ft=json' -"))
+    .arg(external("alt-v", "vd -f json"))
+    .arg(external("alt-V", "vd -f csv"))
+    .arg(external_with_color("alt-l", "less -R"))
+    .arg(external("alt-L", "bat -l json"))
     .stdin(echo.stdout.unwrap())
     .stdout(Stdio::piped());
 
