@@ -49,8 +49,10 @@ pub fn run() -> Result<(), Error> {
     let (fzf_cmd, path) = build_fzf_cmd(&opt)?;
 
     if opt.show_fzf_command {
+        println!("#!/bin/bash");
+        println!();
         println!(
-            "{} \\",
+            "echo | {} \\",
             shell_quote::bash::quote(fzf_cmd.get_program())
                 .to_str()
                 .unwrap()
