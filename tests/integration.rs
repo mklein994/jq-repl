@@ -12,6 +12,7 @@ fn check_fzf_command_output() {
 
     let stdout = String::from_utf8(output.stdout).unwrap();
 
+    let line = line!();
     let expected = r##"#!/bin/bash
 
 echo | fzf \
@@ -30,7 +31,20 @@ $'--bind=ctrl-space:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M
 $'--bind=alt-space:change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json'
 "##;
 
-    for (expected_line, actual_line) in expected.lines().zip(stdout.lines()) {
-        assert_eq!(expected_line, actual_line);
+    assert_eq!(
+        expected.lines().count(),
+        stdout.lines().count(),
+        "expected != actual line count"
+    );
+
+    for (line_number, (expected_line, actual_line)) in
+        expected.lines().zip(stdout.lines()).enumerate()
+    {
+        assert_eq!(
+            expected_line,
+            actual_line,
+            "failed on line {}",
+            line as usize + line_number + 1
+        );
     }
 }
