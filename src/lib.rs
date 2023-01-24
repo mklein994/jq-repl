@@ -242,7 +242,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     .arg(external_with_color("alt-l", "less -R"))
     .arg(external("alt-L", "bat -l json"))
     .stdin(echo.stdout.unwrap())
-    .stdout(Stdio::piped());
+    .stdout(Stdio::inherit());
 
     Ok((fzf, path))
 }
