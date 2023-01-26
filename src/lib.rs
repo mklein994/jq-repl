@@ -138,7 +138,13 @@ impl<'a> std::fmt::Display for InputFile<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Stdin(file) => file.display().fmt(f),
-            Self::File(file) => file.display().fmt(f),
+            Self::File(file) => write!(
+                f,
+                "{}",
+                shell_quote::bash::quote(file)
+                    .to_str()
+                    .expect("Only valid unicode filenames are allowed")
+            ),
         }
     }
 }
