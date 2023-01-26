@@ -17,7 +17,6 @@ fn check_fzf_command_output() {
 
 fzf \
 --disabled \
---print-query \
 $'--preview-window=up,99%,border-bottom' \
 $'--info=hidden' \
 $'--header=M-e: nvim \xE2\x81\x84 M-v: vd \xE2\x81\x84 M-l: pager \xE2\x81\x84 ^<space>: gron' \

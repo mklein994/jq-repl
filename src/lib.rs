@@ -183,7 +183,6 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     let mut fzf = Command::new(&opt.fzf_bin);
     fzf.args([
         "--disabled",
-        "--print-query",
         "--preview-window=up,99%,border-bottom",
         "--info=hidden",
         "--header=M-e: nvim ⁄ M-v: vd ⁄ M-l: pager ⁄ ^<space>: gron",
