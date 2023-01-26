@@ -254,7 +254,10 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     .arg(external("alt-e", "nvim -c 'set ft=json' -"))
     .arg(external("alt-v", "vd -f json"))
     .arg(external("alt-V", "vd -f csv"))
-    .arg(external_with_color("alt-l", "less -R"))
+    .arg(external_with_color(
+        "alt-l",
+        &format!("{} {}", &opt.pager, &opt.pager_options.join(" ")),
+    ))
     .arg(external("alt-L", "bat -l json"))
     .stdin(Stdio::null())
     .stdout(Stdio::inherit());
