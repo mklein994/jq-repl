@@ -5,7 +5,7 @@ use std::path::PathBuf;
 #[command(version, about)]
 pub struct Opt {
     /// Executable to call
-    #[arg(long, env = "JQ_BIN", default_value = "gojq")]
+    #[arg(long, visible_alias = "jq-bin", env = "JQ_BIN", default_value = "gojq")]
     pub bin: String,
 
     /// Override the path to fzf
