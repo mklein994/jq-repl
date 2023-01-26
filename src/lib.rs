@@ -4,7 +4,6 @@ mod opt;
 use clap::Parser;
 pub use error::Error;
 use opt::Opt;
-use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -47,7 +46,8 @@ pub fn run() -> Result<(), Error> {
         opt.args.push("-n".to_string());
     }
 
-    let (fzf_cmd, path) = build_fzf_cmd(&opt)?;
+    // Keep a reference to the temp file alive until we quit
+    let (mut fzf_cmd, _path) = build_fzf_cmd(&opt)?;
 
     if opt.show_fzf_command {
         println!("#!/bin/bash");
@@ -74,50 +74,14 @@ pub fn run() -> Result<(), Error> {
         return Ok(());
     }
 
-    let query = get_query(fzf_cmd)?;
-
-    eprintln!("{:?}", if query.is_empty() { "." } else { &query });
-
-    let mut jq_cmd = build_jq_cmd(&opt.bin, &path, opt.use_default_args, &opt.args, &query)?;
-
-    let is_output_interactive = atty::is(atty::Stream::Stdout);
-    if is_output_interactive {
-        jq_cmd.stdout(Stdio::piped());
-
-        let jq = jq_cmd.spawn()?;
-
-        Command::new(&opt.pager)
-            .args(&opt.pager_options)
-            .stdin(jq.stdout.unwrap())
-            .stdout(Stdio::inherit())
-            .spawn()?
-            .wait()?;
+    let status = fzf_cmd.spawn()?.wait()?;
+    // Forward the return status from fzf. An error code of 1 means no match was found,
+    // which is meaningless here.
+    if status.success() || matches!(status.code(), Some(1)) {
+        Ok(())
     } else {
-        jq_cmd.stdout(Stdio::inherit()).spawn()?.wait()?;
+        Err(Error::Fzf(status))
     }
-
-    Ok(())
-}
-
-pub fn build_jq_cmd(
-    jq_bin: &str,
-    input_file: &InputFile,
-    use_default_args: bool,
-    args: &[String],
-    output: &str,
-) -> Result<Command, Error> {
-    let file = match input_file {
-        InputFile::File(file) => File::open(file)?,
-        InputFile::Stdin(stdin) => File::open(stdin)?,
-    };
-
-    let mut jq = Command::new(jq_bin);
-
-    if use_default_args {
-        jq.args(DEFAULT_JQ_ARG_PREFIX);
-    }
-    jq.args(args).arg(output).stdin(file);
-    Ok(jq)
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -263,18 +227,6 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     .stdout(Stdio::inherit());
 
     Ok((fzf, path))
-}
-
-pub fn get_query(mut fzf: Command) -> Result<String, Error> {
-    let output = fzf.stderr(Stdio::inherit()).output()?;
-
-    if output.status.success() {
-        let out = String::from_utf8(output.stdout)?;
-        let out = out.trim();
-        Ok(out.to_string())
-    } else {
-        Err(Error::Fzf(output.status))
-    }
 }
 
 #[cfg(test)]
