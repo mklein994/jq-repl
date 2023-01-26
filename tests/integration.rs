@@ -15,7 +15,7 @@ fn check_fzf_command_output() {
     let line = line!();
     let expected = r##"#!/bin/bash
 
-echo | fzf \
+fzf \
 --disabled \
 --print-query \
 $'--preview-window=up,99%,border-bottom' \
@@ -33,7 +33,7 @@ $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/fo
 $'--bind=alt-v:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | vd -f json' \
 $'--bind=alt-V:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | vd -f csv' \
 $'--bind=alt-l:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json | less -R' \
-$'--bind=alt-L:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | bat -l json'
+$'--bind=alt-L:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | bat -l json' < /dev/null
 "##;
 
     assert_eq!(

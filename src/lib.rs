@@ -53,13 +53,13 @@ pub fn run() -> Result<(), Error> {
         println!("#!/bin/bash");
         println!();
         println!(
-            "echo | {} \\",
+            "{} \\",
             shell_quote::bash::quote(fzf_cmd.get_program())
                 .to_str()
                 .unwrap()
         );
         println!(
-            "{}",
+            "{} < /dev/null",
             fzf_cmd
                 .get_args()
                 .map(|arg| {
@@ -169,8 +169,6 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
 
     let jq_bin = &opt.bin;
 
-    let echo = Command::new("echo").stdout(Stdio::piped()).spawn()?;
-
     let mut jq_arg_prefix = if opt.use_default_args {
         [DEFAULT_JQ_ARG_PREFIX, &[&opt.color_flag]]
             .concat()
@@ -256,7 +254,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     .arg(external("alt-V", "vd -f csv"))
     .arg(external_with_color("alt-l", "less -R"))
     .arg(external("alt-L", "bat -l json"))
-    .stdin(echo.stdout.unwrap())
+    .stdin(Stdio::null())
     .stdout(Stdio::inherit());
 
     Ok((fzf, path))
