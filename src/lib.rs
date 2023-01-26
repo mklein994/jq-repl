@@ -222,6 +222,8 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         "--print-query",
         "--preview-window=up,99%,border-bottom",
         "--info=hidden",
+        "--header=M-e: nvim ⁄ M-v: vd ⁄ M-l: pager ⁄ ^<space>: gron",
+        "--header-first",
     ])
     .arg(format!("--history={jq_history_file}"))
     .arg(format!(
