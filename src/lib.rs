@@ -151,24 +151,6 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
 
     let jq_history_file = opt.history_file.display();
 
-    let bind = |key: &str, undo_key: &str, value: &str| {
-        [
-            format!(
-                "--bind={key}:change-preview:{jq_bin} {jq_arg_prefix} {value} {{q}} {input_file}"
-            ),
-            format!("--bind={undo_key}:change-preview:{jq_bin} {jq_arg_prefix} {{q}} {input_file}"),
-        ]
-    };
-
-    let bind_once = |key: &str, undo_key: &str, value: &str| {
-        [
-            format!(
-                "--bind={key}:preview:{jq_bin} {jq_arg_prefix} {value} {{q}} {input_file}"
-            ),
-            format!("--bind={undo_key}:preview:{jq_bin} {jq_arg_prefix} {{q}} {input_file}"),
-        ]
-    };
-
     let external = |key: &str, cmd: &str| {
         format!(
             "--bind={key}:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file} | \
@@ -208,14 +190,33 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         .map(|(key, value)| [key, value].join(":"))
         .join(","),
     ))
-    .args(bind("alt-s", "alt-S", "--slurp"))
-    .args(bind_once("alt-c", "alt-C", &opt.compact_flag))
+    .args([
+        format!(
+            "--bind=alt-s:change-prompt(-s> )+change-preview:{jq_bin} {jq_arg_prefix} --slurp \
+             {{q}} {input_file}"
+        ),
+        format!(
+            "--bind=alt-S:change-prompt(> )+change-preview:{jq_bin} {jq_arg_prefix} {{q}} \
+             {input_file}"
+        ),
+    ])
+    .args([
+        format!(
+            "--bind=alt-c:change-prompt(-c> )+preview:{jq_bin} {jq_arg_prefix} {} {{q}} \
+             {input_file}",
+            &opt.compact_flag
+        ),
+        format!(
+            "--bind=alt-C:change-prompt(> )+preview:{jq_bin} {jq_arg_prefix} {{q}} {input_file}"
+        ),
+    ])
     .arg(format!(
-        "--bind=ctrl-space:change-preview:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} \
-         {input_file} | gron --colorize"
+        "--bind=ctrl-space:change-prompt(gron> )+change-preview:{jq_bin} {jq_arg_prefix} \
+         {no_color_flag} {{q}} {input_file} | gron --colorize"
     ))
     .arg(format!(
-        "--bind=alt-space:change-preview:{jq_bin} {jq_arg_prefix} {{q}} {input_file}"
+        "--bind=alt-space:change-prompt(> )+change-preview:{jq_bin} {jq_arg_prefix} {{q}} \
+         {input_file}"
     ))
     .arg(external("alt-e", "nvim -c 'set ft=json' -"))
     .arg(external("alt-v", "vd -f json"))
