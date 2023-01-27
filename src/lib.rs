@@ -185,9 +185,12 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         "--disabled",
         "--preview-window=up,99%,border-bottom",
         "--info=hidden",
-        "--header=M-e: nvim ⁄ M-v: vd ⁄ M-l: pager ⁄ ^<space>: gron",
         "--header-first",
     ])
+    .arg(format!(
+        "--header={}",
+        ["M-e: nvim", "M-v: vd", "M-l: pager", "^<space>: gron"].join(" ⁄ "),
+    ))
     .arg(format!("--history={jq_history_file}"))
     .arg(format!(
         "--preview={jq_bin} {jq_arg_prefix} {{q}} {input_file}"
