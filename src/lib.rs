@@ -225,6 +225,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
         &format!("{} {}", &opt.pager, &opt.pager_options.join(" ")),
     ))
     .arg(external("alt-L", "bat -l json"))
+    .args(&opt.fzf_args)
     .stdin(Stdio::null())
     .stdout(Stdio::inherit());
 

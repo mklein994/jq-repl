@@ -60,6 +60,11 @@ pub struct Opt {
     #[arg(long)]
     pub version_verbose: bool,
 
+    /// Pass additional arguments to `fzf`, terminated with a semicolon
+    #[arg(long, num_args(1..), allow_hyphen_values = true, value_terminator = ";")]
+    #[arg(verbatim_doc_comment)]
+    pub fzf_args: Vec<String>,
+
     /// Additional args passed to `jq`
     #[arg(last = true)]
     pub args: Vec<String>,
