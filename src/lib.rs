@@ -4,6 +4,7 @@ mod opt;
 use clap::Parser;
 pub use error::Error;
 use opt::Opt;
+use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -41,7 +42,7 @@ pub fn run() -> Result<(), Error> {
         return Ok(());
     }
 
-    opt.null_input = opt.null_input || (atty::is(atty::Stream::Stdin) && opt.filename.is_none());
+    opt.null_input = opt.null_input || (atty::is(atty::Stream::Stdin) && opt.filenames.is_empty());
     if opt.null_input {
         opt.args.push("-n".to_string());
     }
@@ -57,6 +58,7 @@ pub fn run() -> Result<(), Error> {
             shell_quote::bash::quote(fzf_cmd.get_program())
                 .to_str()
                 .unwrap()
+                .trim()
         );
         println!(
             "{} < /dev/null",
@@ -84,15 +86,25 @@ pub fn run() -> Result<(), Error> {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum InputFile<'a> {
-    Stdin(PathBuf),
+    Stdin(File, PathBuf),
     File(&'a Path),
+}
+
+impl<'a> PartialEq for InputFile<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Stdin(_, l0), Self::Stdin(_, r0)) => l0 == r0,
+            (Self::File(l0), Self::File(r0)) => l0 == r0,
+            _ => false,
+        }
+    }
 }
 
 impl<'a> Drop for InputFile<'a> {
     fn drop(&mut self) {
-        if let Self::Stdin(path) = self {
+        if let Self::Stdin(_, path) = self {
             std::fs::remove_file(path).expect("failed to remove temp file!");
         }
     }
@@ -101,7 +113,7 @@ impl<'a> Drop for InputFile<'a> {
 impl<'a> std::fmt::Display for InputFile<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Stdin(file) => file.display().fmt(f),
+            Self::Stdin(_, path) => path.display().fmt(f),
             Self::File(file) => write!(
                 f,
                 "{}",
@@ -113,22 +125,46 @@ impl<'a> std::fmt::Display for InputFile<'a> {
     }
 }
 
-pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
-    let path = match &opt.filename {
-        Some(filename) => InputFile::File(filename),
-        None => {
-            let (mut file, filename) = tempfile::NamedTempFile::new()?.keep()?;
-            if !opt.null_input {
-                std::io::copy(&mut std::io::stdin(), &mut file)?;
-            }
-            InputFile::Stdin(filename)
-        }
-    };
+pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, Vec<InputFile>), Error> {
+    let mut filenames: Vec<InputFile> = vec![];
 
-    let input_file = if opt.null_input {
-        String::new()
+    let has_piped_input = atty::isnt(atty::Stream::Stdin);
+
+    let input_file = if opt.show_fzf_command {
+        opt.filenames
+            .iter()
+            .map(|x| x.to_str().expect("only unicode names are allowed"))
+            .collect::<Vec<_>>()
+            .join(" ")
     } else {
-        path.to_string()
+        for filename in &opt.filenames {
+            if has_piped_input && matches!(filename.to_str(), Some("-")) {
+                let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
+                std::io::copy(&mut std::io::stdin(), &mut file)?;
+
+                filenames.push(InputFile::Stdin(file, path));
+            } else if !filename.is_file() {
+                let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
+                let mut source = File::open(filename)?;
+                std::io::copy(&mut source, &mut file)?;
+
+                filenames.push(InputFile::Stdin(file, path));
+            } else {
+                filenames.push(InputFile::File(filename));
+            }
+        }
+
+        if has_piped_input && filenames.is_empty() {
+            let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
+            std::io::copy(&mut std::io::stdin(), &mut file)?;
+            filenames.push(InputFile::Stdin(file, path));
+        }
+
+        filenames
+            .iter()
+            .map(std::string::ToString::to_string)
+            .collect::<Vec<_>>()
+            .join(" ")
     };
 
     let jq_bin = &opt.bin;
@@ -230,7 +266,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, InputFile), Error> {
     .stdin(Stdio::null())
     .stdout(Stdio::inherit());
 
-    Ok((fzf, path))
+    Ok((fzf, filenames))
 }
 
 #[cfg(test)]

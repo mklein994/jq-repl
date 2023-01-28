@@ -9,7 +9,7 @@ fn main() {
                 }
             }
         }
-        eprintln!("{err}");
+        eprintln!("{err:#?}");
         std::process::exit(1);
     }
 }

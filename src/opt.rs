@@ -45,8 +45,10 @@ pub struct Opt {
     #[arg(long, allow_hyphen_values = true, default_value = "-c")]
     pub compact_flag: String,
 
-    /// Name of the JSON file to read from (defaults to standard input)
-    pub filename: Option<PathBuf>,
+    /// Names of the JSON file to read from (defaults to standard input)
+    ///
+    /// If one of the files is "-", insert stdin at that point.
+    pub filenames: Vec<PathBuf>,
 
     /// Pager to pipe output to
     #[arg(long, default_value = "less")]
