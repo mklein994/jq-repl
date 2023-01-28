@@ -21,7 +21,7 @@ pub fn run() -> Result<(), Error> {
 
     if opt.version_verbose {
         let print_cmd_version = |name: &str, version_flag: &str| {
-            let version = String::from_utf8(
+            let version_output = String::from_utf8(
                 Command::new(name)
                     .arg(version_flag)
                     .output()
@@ -29,7 +29,9 @@ pub fn run() -> Result<(), Error> {
                     .stdout,
             )
             .unwrap();
-            println!("{name}:\t{}", version.trim());
+
+            let version = version_output.lines().next().unwrap();
+            println!("{name}:\t{version}");
         };
 
         println!("{} {}", clap::crate_name!(), clap::crate_version!());
