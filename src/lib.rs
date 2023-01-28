@@ -96,16 +96,6 @@ pub enum InputFile<'a> {
     File(&'a Path),
 }
 
-impl<'a> PartialEq for InputFile<'a> {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::Stdin(_, l0), Self::Stdin(_, r0)) => l0 == r0,
-            (Self::File(l0), Self::File(r0)) => l0 == r0,
-            _ => false,
-        }
-    }
-}
-
 impl<'a> Drop for InputFile<'a> {
     fn drop(&mut self) {
         if let Self::Stdin(_, path) = self {
