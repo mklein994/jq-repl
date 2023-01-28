@@ -46,7 +46,7 @@ pub fn run() -> Result<(), Error> {
         return Ok(());
     }
 
-    opt.null_input = opt.null_input || (atty::is(atty::Stream::Stdin) && opt.filenames.is_empty());
+    opt.null_input = opt.null_input || (atty::is(atty::Stream::Stdin) && opt.files.is_empty());
     if opt.null_input {
         opt.args.push("-n".to_string());
     }
@@ -123,14 +123,14 @@ impl<'a> std::fmt::Display for InputFile<'a> {
                 "{}",
                 shell_quote::bash::quote(file)
                     .to_str()
-                    .expect("Only valid unicode filenames are allowed")
+                    .expect("Only valid unicode file names are allowed")
             ),
         }
     }
 }
 
 pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, Vec<InputFile>), Error> {
-    let (filenames, input_file) = get_filenames(opt)?;
+    let (files, input_file_paths) = get_files(opt)?;
 
     let jq_bin = &opt.bin;
 
@@ -154,13 +154,13 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, Vec<InputFile>), Error> {
 
     let external = |key: &str, cmd: &str| {
         format!(
-            "--bind={key}:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file} | \
-             {cmd}"
+            "--bind={key}:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} \
+             {input_file_paths} | {cmd}"
         )
     };
 
     let external_with_color = |key: &str, cmd: &str| {
-        format!("--bind={key}:execute:{jq_bin} {jq_arg_prefix} {{q}} {input_file} | {cmd}")
+        format!("--bind={key}:execute:{jq_bin} {jq_arg_prefix} {{q}} {input_file_paths} | {cmd}")
     };
 
     let mut fzf = Command::new(&opt.fzf_bin);
@@ -176,7 +176,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, Vec<InputFile>), Error> {
     ))
     .arg(format!("--history={jq_history_file}"))
     .arg(format!(
-        "--preview={jq_bin} {jq_arg_prefix} {{q}} {input_file}"
+        "--preview={jq_bin} {jq_arg_prefix} {{q}} {input_file_paths}"
     ))
     .arg(format!(
         "--bind={}",
@@ -194,31 +194,34 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, Vec<InputFile>), Error> {
     .args([
         format!(
             "--bind=alt-s:change-prompt(-s> )+change-preview:{jq_bin} {jq_arg_prefix} --slurp \
-             {{q}} {input_file}"
+             {{q}} {input_file_paths}"
         ),
         format!(
             "--bind=alt-S:change-prompt(> )+change-preview:{jq_bin} {jq_arg_prefix} {{q}} \
-             {input_file}"
+             {input_file_paths}"
         ),
     ])
     .args([
         format!(
             "--bind=alt-c:change-prompt(-c> )+preview:{jq_bin} {jq_arg_prefix} {} {{q}} \
-             {input_file}",
+             {input_file_paths}",
             &opt.compact_flag
         ),
         format!(
-            "--bind=alt-C:change-prompt(> )+preview:{jq_bin} {jq_arg_prefix} {{q}} {input_file}"
+            "--bind=alt-C:change-prompt(> )+preview:{jq_bin} {jq_arg_prefix} {{q}} \
+             {input_file_paths}"
         ),
     ])
-    .arg(format!(
-        "--bind=ctrl-space:change-prompt(gron> )+change-preview:{jq_bin} {jq_arg_prefix} \
-         {no_color_flag} {{q}} {input_file} | gron --colorize"
-    ))
-    .arg(format!(
-        "--bind=alt-space:change-prompt(> )+change-preview:{jq_bin} {jq_arg_prefix} {{q}} \
-         {input_file}"
-    ))
+    .args([
+        format!(
+            "--bind=ctrl-space:change-prompt(gron> )+change-preview:{jq_bin} {jq_arg_prefix} \
+             {no_color_flag} {{q}} {input_file_paths} | gron --colorize"
+        ),
+        format!(
+            "--bind=alt-space:change-prompt(> )+change-preview:{jq_bin} {jq_arg_prefix} {{q}} \
+             {input_file_paths}"
+        ),
+    ])
     .arg(external(
         "alt-e",
         &format!("{} {}", &opt.editor, &opt.editor_options.join(" ")),
@@ -234,52 +237,52 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, Vec<InputFile>), Error> {
     .stdin(Stdio::null())
     .stdout(Stdio::inherit());
 
-    Ok((fzf, filenames))
+    Ok((fzf, files))
 }
 
-fn get_filenames(opt: &Opt) -> Result<(Vec<InputFile>, String), Error> {
-    let mut filenames: Vec<InputFile> = vec![];
+fn get_files(opt: &Opt) -> Result<(Vec<InputFile>, String), Error> {
+    let mut files: Vec<InputFile> = vec![];
 
     let has_piped_input = atty::isnt(atty::Stream::Stdin);
 
-    let input_file = if opt.show_fzf_command {
-        opt.filenames
+    let input_file_paths = if opt.show_fzf_command {
+        opt.files
             .iter()
             .map(|x| x.to_str().expect("only unicode names are allowed"))
             .collect::<Vec<_>>()
             .join(" ")
     } else {
-        for filename in &opt.filenames {
-            if has_piped_input && matches!(filename.to_str(), Some("-")) {
+        for file_name in &opt.files {
+            if has_piped_input && matches!(file_name.to_str(), Some("-")) {
                 let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
                 std::io::copy(&mut std::io::stdin(), &mut file)?;
 
-                filenames.push(InputFile::Stdin(file, path));
-            } else if !filename.is_file() {
+                files.push(InputFile::Stdin(file, path));
+            } else if !file_name.is_file() {
                 let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
-                let mut source = File::open(filename)?;
+                let mut source = File::open(file_name)?;
                 std::io::copy(&mut source, &mut file)?;
 
-                filenames.push(InputFile::Stdin(file, path));
+                files.push(InputFile::Stdin(file, path));
             } else {
-                filenames.push(InputFile::File(filename));
+                files.push(InputFile::File(file_name));
             }
         }
 
-        if has_piped_input && filenames.is_empty() {
+        if has_piped_input && files.is_empty() {
             let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
             std::io::copy(&mut std::io::stdin(), &mut file)?;
-            filenames.push(InputFile::Stdin(file, path));
+            files.push(InputFile::Stdin(file, path));
         }
 
-        filenames
+        files
             .iter()
             .map(std::string::ToString::to_string)
             .collect::<Vec<_>>()
             .join(" ")
     };
 
-    Ok((filenames, input_file))
+    Ok((files, input_file_paths))
 }
 
 #[cfg(test)]

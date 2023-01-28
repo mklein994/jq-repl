@@ -55,10 +55,10 @@ pub struct Opt {
     #[arg(long, default_value = "-c 'set ft=json' -")]
     pub editor_options: Vec<String>,
 
-    /// Names of the JSON file to read from (defaults to standard input)
+    /// JSON files to read from (defaults to standard input)
     ///
     /// If one of the files is "-", insert stdin at that point.
-    pub filenames: Vec<PathBuf>,
+    pub files: Vec<PathBuf>,
 
     /// Pager to pipe output to
     #[arg(long, default_value = "less")]
