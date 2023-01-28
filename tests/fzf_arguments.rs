@@ -21,7 +21,7 @@ fzf \
 $'--preview-window=up,99%,border-bottom' \
 $'--info=hidden' \
 --header-first \
-$'--header=M-e: nvim \xE2\x81\x84 M-v: vd \xE2\x81\x84 M-l: pager \xE2\x81\x84 ^<space>: gron' \
+$'--header=M-e: editor \xE2\x81\x84 M-v: vd \xE2\x81\x84 M-l: pager \xE2\x81\x84 ^<space>: gron' \
 $'--history=/tmp/jq_repl_history' \
 $'--preview=gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json' \
 $'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:toggle-preview-wrap,home:preview-top,end:preview-bottom' \

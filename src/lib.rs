@@ -40,7 +40,7 @@ pub fn run() -> Result<(), Error> {
         print_cmd_version(&opt.bin, "--version");
         print_cmd_version("bat", "--version");
         print_cmd_version("vd", "--version");
-        print_cmd_version("nvim", "--version");
+        print_cmd_version(&opt.editor, "--version");
         print_cmd_version(&opt.pager, "--version");
 
         return Ok(());
@@ -211,7 +211,7 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, Vec<InputFile>), Error> {
     ])
     .arg(format!(
         "--header={}",
-        ["M-e: nvim", "M-v: vd", "M-l: pager", "^<space>: gron"].join(" ⁄ "),
+        ["M-e: editor", "M-v: vd", "M-l: pager", "^<space>: gron"].join(" ⁄ "),
     ))
     .arg(format!("--history={jq_history_file}"))
     .arg(format!(
@@ -258,7 +258,10 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, Vec<InputFile>), Error> {
         "--bind=alt-space:change-prompt(> )+change-preview:{jq_bin} {jq_arg_prefix} {{q}} \
          {input_file}"
     ))
-    .arg(external("alt-e", "nvim -c 'set ft=json' -"))
+    .arg(external(
+        "alt-e",
+        &format!("{} {}", &opt.editor, &opt.editor_options.join(" ")),
+    ))
     .arg(external("alt-v", "vd -f json"))
     .arg(external("alt-V", "vd -f csv"))
     .arg(external_with_color(

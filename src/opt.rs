@@ -45,6 +45,16 @@ pub struct Opt {
     #[arg(long, allow_hyphen_values = true, default_value = "-c")]
     pub compact_flag: String,
 
+    /// Editor to open inside fzf
+    #[arg(long, env = "EDITOR", default_value = "vim")]
+    pub editor: String,
+
+    /// Arguments to pass to the editor
+    ///
+    /// This should accept reading from standard input, and should block until it quits.
+    #[arg(long, default_value = "-c 'set ft=json' -")]
+    pub editor_options: Vec<String>,
+
     /// Names of the JSON file to read from (defaults to standard input)
     ///
     /// If one of the files is "-", insert stdin at that point.
