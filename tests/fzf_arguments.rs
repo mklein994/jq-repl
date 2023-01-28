@@ -1,4 +1,4 @@
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 #[test]
 fn check_fzf_command_output() {
@@ -7,7 +7,6 @@ fn check_fzf_command_output() {
         .arg("/tmp/jq_repl_history")
         .arg("--show-fzf-command")
         .arg("/tmp/foo.json")
-        .stdout(Stdio::piped())
         .output()
         .unwrap();
 
