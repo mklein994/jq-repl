@@ -39,6 +39,8 @@ pub fn run() -> Result<(), Error> {
         print_cmd_version(&opt.fzf_bin, "--version");
         print_cmd_version(&opt.bin, "--version");
         print_cmd_version("bat", "--version");
+        print_cmd_version("vd", "--version");
+        print_cmd_version("nvim", "--version");
         print_cmd_version(&opt.pager, "--version");
 
         return Ok(());
