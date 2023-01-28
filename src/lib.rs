@@ -7,6 +7,7 @@ use opt::Opt;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use tempfile::NamedTempFile;
 
 const DEFAULT_JQ_ARG_PREFIX: &[&str] = &[
     "-L",
@@ -108,22 +109,14 @@ fn print_verbose_version(opt: &Opt) {
 
 #[derive(Debug)]
 pub enum InputFile<'a> {
-    Stdin(File, PathBuf),
+    Stdin(NamedTempFile),
     File(&'a Path),
-}
-
-impl<'a> Drop for InputFile<'a> {
-    fn drop(&mut self) {
-        if let Self::Stdin(_, path) = self {
-            std::fs::remove_file(path).expect("failed to remove temp file!");
-        }
-    }
 }
 
 impl<'a> std::fmt::Display for InputFile<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let path = match self {
-            Self::Stdin(_, path) => path.as_path(),
+            Self::Stdin(file) => file.path(),
             Self::File(path) => path,
         };
 
@@ -254,25 +247,25 @@ fn get_files(positional_files: &[PathBuf]) -> Result<Vec<InputFile>, Error> {
 
     for file_name in positional_files {
         if file_name == &cat_file {
-            let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
+            let mut file = NamedTempFile::new()?;
             std::io::copy(&mut std::io::stdin(), &mut file)?;
 
-            files.push(InputFile::Stdin(file, path));
+            files.push(InputFile::Stdin(file));
         } else if !file_name.is_file() {
-            let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
+            let mut file = NamedTempFile::new()?;
             let mut source = File::open(file_name)?;
             std::io::copy(&mut source, &mut file)?;
 
-            files.push(InputFile::Stdin(file, path));
+            files.push(InputFile::Stdin(file));
         } else {
             files.push(InputFile::File(file_name));
         }
     }
 
     if has_piped_input && files.is_empty() {
-        let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
+        let mut file = NamedTempFile::new()?;
         std::io::copy(&mut std::io::stdin(), &mut file)?;
-        files.push(InputFile::Stdin(file, path));
+        files.push(InputFile::Stdin(file));
     }
 
     Ok(files)
