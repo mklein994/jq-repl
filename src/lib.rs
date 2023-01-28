@@ -122,16 +122,18 @@ impl<'a> Drop for InputFile<'a> {
 
 impl<'a> std::fmt::Display for InputFile<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Stdin(_, path) => path.display().fmt(f),
-            Self::File(file) => write!(
-                f,
-                "{}",
-                shell_quote::bash::quote(file)
-                    .to_str()
-                    .expect("Only valid unicode file names are allowed")
-            ),
-        }
+        let path = match self {
+            Self::Stdin(_, path) => path.as_path(),
+            Self::File(path) => path,
+        };
+
+        write!(
+            f,
+            "{}",
+            shell_quote::bash::quote(path)
+                .to_str()
+                .expect("Only valid UTF-8 file names are allowed")
+        )
     }
 }
 
@@ -246,11 +248,12 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
 
 fn get_files(positional_files: &[PathBuf]) -> Result<Vec<InputFile>, Error> {
     let mut files: Vec<InputFile> = vec![];
+    let cat_file = PathBuf::from("-");
 
     let has_piped_input = atty::isnt(atty::Stream::Stdin);
 
     for file_name in positional_files {
-        if has_piped_input && matches!(file_name.to_str(), Some("-")) {
+        if file_name == &cat_file {
             let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
             std::io::copy(&mut std::io::stdin(), &mut file)?;
 
