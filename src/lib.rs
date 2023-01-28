@@ -216,13 +216,13 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, Vec<InputFile>), Error> {
         "alt-e",
         &format!("{} {}", &opt.editor, &opt.editor_options.join(" ")),
     ))
-    .arg(external("alt-v", "vd -f json"))
-    .arg(external("alt-V", "vd -f csv"))
+    .arg(external("alt-v", "vd --filetype json"))
+    .arg(external("alt-V", "vd --filetype csv"))
     .arg(external_with_color(
         "alt-l",
         &format!("{} {}", &opt.pager, &opt.pager_options.join(" ")),
     ))
-    .arg(external("alt-L", "bat -l json"))
+    .arg(external("alt-L", "bat --language json"))
     .args(&opt.fzf_args)
     .stdin(Stdio::null())
     .stdout(Stdio::inherit());

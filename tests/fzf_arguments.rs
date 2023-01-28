@@ -32,10 +32,10 @@ $'--bind=alt-C:change-prompt(> )+preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output
 $'--bind=ctrl-space:change-prompt(gron> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | gron --colorize' \
 $'--bind=alt-space:change-prompt(> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json' \
 $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | nvim -c \'set ft=json\' -' \
-$'--bind=alt-v:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | vd -f json' \
-$'--bind=alt-V:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | vd -f csv' \
+$'--bind=alt-v:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | vd --filetype json' \
+$'--bind=alt-V:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | vd --filetype csv' \
 $'--bind=alt-l:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C {q} /tmp/foo.json | less -R' \
-$'--bind=alt-L:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | bat -l json' < /dev/null
+$'--bind=alt-L:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/foo.json | bat --language json' < /dev/null
 "##;
 
     assert_eq!(
