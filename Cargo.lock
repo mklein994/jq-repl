@@ -156,7 +156,7 @@ dependencies = [
 
 [[package]]
 name = "jq-repl"
-version = "0.7.0"
+version = "0.7.1"
 dependencies = [
  "atty",
  "clap",
