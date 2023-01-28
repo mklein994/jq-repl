@@ -40,17 +40,20 @@ $'--bind=alt-L:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -M {q} /tmp/fo
     assert_eq!(
         expected.lines().count(),
         stdout.lines().count(),
-        "expected != actual line count"
+        "expected != actual line count.\nstdout:\n{stdout}\n\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stderr)
     );
 
-    for (line_number, (expected_line, actual_line)) in
-        expected.lines().zip(stdout.lines()).enumerate()
-    {
-        assert_eq!(
-            expected_line,
-            actual_line,
-            "failed on line {}",
-            line as usize + line_number + 1
-        );
+    if expected != stdout {
+        for (line_number, (expected_line, actual_line)) in
+            expected.lines().zip(stdout.lines()).enumerate()
+        {
+            assert_eq!(
+                expected_line,
+                actual_line,
+                "failed on line {}",
+                line as usize + line_number + 1
+            );
+        }
     }
 }
