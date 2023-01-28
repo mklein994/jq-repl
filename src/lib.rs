@@ -20,29 +20,7 @@ pub fn run() -> Result<(), Error> {
     let mut opt = Opt::parse();
 
     if opt.version_verbose {
-        let print_cmd_version = |name: &str, version_flag: &str| {
-            let version_output = String::from_utf8(
-                Command::new(name)
-                    .arg(version_flag)
-                    .output()
-                    .unwrap()
-                    .stdout,
-            )
-            .unwrap();
-
-            let version = version_output.lines().next().unwrap();
-            println!("{name}:\t{version}");
-        };
-
-        println!("{} {}", clap::crate_name!(), clap::crate_version!());
-        println!();
-        print_cmd_version(&opt.fzf_bin, "--version");
-        print_cmd_version(&opt.bin, "--version");
-        print_cmd_version("bat", "--version");
-        print_cmd_version("vd", "--version");
-        print_cmd_version(&opt.editor, "--version");
-        print_cmd_version(&opt.pager, "--version");
-
+        print_verbose_version(&opt);
         return Ok(());
     }
 
@@ -51,36 +29,24 @@ pub fn run() -> Result<(), Error> {
         opt.args.push("-n".to_string());
     }
 
+    let files = get_files(&opt.files)?;
+
+    let input_file_paths = files
+        .iter()
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(" ");
+
     // Keep a reference to the temp file alive until we quit
-    let (mut fzf_cmd, _path) = build_fzf_cmd(&opt)?;
+    let mut fzf_cmd = build_fzf_cmd(&opt, &input_file_paths)?;
 
     if opt.show_fzf_command {
-        println!("#!/bin/bash");
-        println!();
-        println!(
-            "{} \\",
-            shell_quote::bash::quote(fzf_cmd.get_program())
-                .to_str()
-                .unwrap()
-                .trim()
-        );
-        println!(
-            "{} < /dev/null",
-            fzf_cmd
-                .get_args()
-                .map(|arg| {
-                    shell_quote::bash::quote(arg)
-                        .to_str()
-                        .expect("Failed to convert arg to UTF-8 string")
-                        .to_string()
-                })
-                .collect::<Vec<_>>()
-                .join(" \\\n"),
-        );
+        print_fzf_command(&fzf_cmd);
         return Ok(());
     }
 
     let status = fzf_cmd.spawn()?.wait()?;
+
     // Forward the return status from fzf. An error code of 1 means no match was found,
     // which is meaningless here.
     if status.success() || matches!(status.code(), Some(1)) {
@@ -88,6 +54,56 @@ pub fn run() -> Result<(), Error> {
     } else {
         Err(Error::Fzf(status))
     }
+}
+
+fn print_fzf_command(fzf_cmd: &Command) {
+    println!("#!/bin/bash");
+    println!();
+    println!(
+        "{} \\",
+        shell_quote::bash::quote(fzf_cmd.get_program())
+            .to_str()
+            .unwrap()
+            .trim()
+    );
+    println!(
+        "{} < /dev/null",
+        fzf_cmd
+            .get_args()
+            .map(|arg| {
+                shell_quote::bash::quote(arg)
+                    .to_str()
+                    .expect("Failed to convert arg to UTF-8 string")
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join(" \\\n"),
+    );
+}
+
+fn print_verbose_version(opt: &Opt) {
+    let print_cmd_version = |name: &str, version_flag: &str| {
+        let version_output = String::from_utf8(
+            Command::new(name)
+                .arg(version_flag)
+                .output()
+                .unwrap()
+                .stdout,
+        )
+        .unwrap();
+
+        let version = version_output.lines().next().unwrap();
+        println!("{name}:\t{version}");
+    };
+
+    println!("{} {}", clap::crate_name!(), clap::crate_version!());
+    println!();
+    print_cmd_version(&opt.fzf_bin, "--version");
+    print_cmd_version(&opt.bin, "--version");
+    print_cmd_version("bat", "--version");
+    print_cmd_version("vd", "--version");
+    print_cmd_version(&opt.editor, "--version");
+    print_cmd_version(&opt.pager, "--version");
 }
 
 #[derive(Debug)]
@@ -119,9 +135,7 @@ impl<'a> std::fmt::Display for InputFile<'a> {
     }
 }
 
-pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, Vec<InputFile>), Error> {
-    let (files, input_file_paths) = get_files(opt)?;
-
+pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error> {
     let jq_bin = &opt.bin;
 
     let mut jq_arg_prefix = if opt.use_default_args {
@@ -227,52 +241,38 @@ pub fn build_fzf_cmd(opt: &Opt) -> Result<(Command, Vec<InputFile>), Error> {
     .stdin(Stdio::null())
     .stdout(Stdio::inherit());
 
-    Ok((fzf, files))
+    Ok(fzf)
 }
 
-fn get_files(opt: &Opt) -> Result<(Vec<InputFile>, String), Error> {
+fn get_files(positional_files: &[PathBuf]) -> Result<Vec<InputFile>, Error> {
     let mut files: Vec<InputFile> = vec![];
 
     let has_piped_input = atty::isnt(atty::Stream::Stdin);
 
-    let input_file_paths = if opt.show_fzf_command {
-        opt.files
-            .iter()
-            .map(|x| x.to_str().expect("only unicode names are allowed"))
-            .collect::<Vec<_>>()
-            .join(" ")
-    } else {
-        for file_name in &opt.files {
-            if has_piped_input && matches!(file_name.to_str(), Some("-")) {
-                let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
-                std::io::copy(&mut std::io::stdin(), &mut file)?;
-
-                files.push(InputFile::Stdin(file, path));
-            } else if !file_name.is_file() {
-                let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
-                let mut source = File::open(file_name)?;
-                std::io::copy(&mut source, &mut file)?;
-
-                files.push(InputFile::Stdin(file, path));
-            } else {
-                files.push(InputFile::File(file_name));
-            }
-        }
-
-        if has_piped_input && files.is_empty() {
+    for file_name in positional_files {
+        if has_piped_input && matches!(file_name.to_str(), Some("-")) {
             let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
             std::io::copy(&mut std::io::stdin(), &mut file)?;
+
             files.push(InputFile::Stdin(file, path));
+        } else if !file_name.is_file() {
+            let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
+            let mut source = File::open(file_name)?;
+            std::io::copy(&mut source, &mut file)?;
+
+            files.push(InputFile::Stdin(file, path));
+        } else {
+            files.push(InputFile::File(file_name));
         }
+    }
 
-        files
-            .iter()
-            .map(std::string::ToString::to_string)
-            .collect::<Vec<_>>()
-            .join(" ")
-    };
+    if has_piped_input && files.is_empty() {
+        let (mut file, path) = tempfile::NamedTempFile::new()?.keep()?;
+        std::io::copy(&mut std::io::stdin(), &mut file)?;
+        files.push(InputFile::Stdin(file, path));
+    }
 
-    Ok((files, input_file_paths))
+    Ok(files)
 }
 
 #[cfg(test)]
