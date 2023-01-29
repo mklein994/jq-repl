@@ -3,6 +3,8 @@ use std::process::{Command, Stdio};
 #[test]
 fn check_fzf_command_output() {
     let output = Command::new(env!("CARGO_BIN_EXE_jq-repl"))
+        .env_remove("EDITOR")
+        .env_remove("PAGER")
         .arg("--history-file")
         .arg("/tmp/jq_repl_history")
         .arg("--show-fzf-command")
