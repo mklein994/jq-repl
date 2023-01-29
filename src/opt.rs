@@ -46,7 +46,7 @@ pub struct Opt {
     pub compact_flag: String,
 
     /// Editor to open inside fzf
-    #[arg(long, env = "EDITOR", default_value = "vim")]
+    #[arg(long, env = "EDITOR", default_value = "nvim")]
     pub editor: String,
 
     /// Arguments to pass to the editor
