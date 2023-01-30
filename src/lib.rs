@@ -162,12 +162,17 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         format!("--bind={key}:execute:{jq_bin} {jq_arg_prefix} {{q}} {input_file_paths} | {cmd}")
     };
 
+    let null_flag = if opt.null_input { "n" } else { "" };
+
+    let null_flag_standalone = if opt.null_input { "-n" } else { "" };
+
     let mut fzf = Command::new(&opt.fzf_bin);
     fzf.args([
         "--disabled",
         "--preview-window=up,99%,border-bottom",
         "--info=hidden",
         "--header-first",
+        &format!("--prompt={null_flag_standalone}> "),
     ])
     .arg(format!(
         "--header={}",
@@ -192,33 +197,34 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     ))
     .args([
         format!(
-            "--bind=alt-s:change-prompt(-s> )+change-preview:{jq_bin} {jq_arg_prefix} --slurp \
-             {{q}} {input_file_paths}"
+            "--bind=alt-s:change-prompt(-{null_flag}s> )+change-preview:{jq_bin} {jq_arg_prefix} \
+             --slurp {{q}} {input_file_paths}"
         ),
         format!(
-            "--bind=alt-S:change-prompt(> )+change-preview:{jq_bin} {jq_arg_prefix} {{q}} \
-             {input_file_paths}"
+            "--bind=alt-S:change-prompt({null_flag_standalone}> )+change-preview:{jq_bin} \
+             {jq_arg_prefix} {{q}} {input_file_paths}"
         ),
     ])
     .args([
         format!(
-            "--bind=alt-c:change-prompt(-c> )+preview:{jq_bin} {jq_arg_prefix} {} {{q}} \
-             {input_file_paths}",
+            "--bind=alt-c:change-prompt(-{null_flag}c> )+preview:{jq_bin} {jq_arg_prefix} {} \
+             {{q}} {input_file_paths}",
             &opt.compact_flag
         ),
         format!(
-            "--bind=alt-C:change-prompt(> )+preview:{jq_bin} {jq_arg_prefix} {{q}} \
-             {input_file_paths}"
+            "--bind=alt-C:change-prompt({null_flag_standalone}> )+preview:{jq_bin} \
+             {jq_arg_prefix} {{q}} {input_file_paths}"
         ),
     ])
     .args([
         format!(
-            "--bind=ctrl-space:change-prompt(gron> )+change-preview:{jq_bin} {jq_arg_prefix} \
-             {no_color_flag} {{q}} {input_file_paths} | gron --colorize"
+            "--bind=ctrl-space:change-prompt({null_flag_standalone} gron> \
+             )+change-preview:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
+             gron --colorize"
         ),
         format!(
-            "--bind=alt-space:change-prompt(> )+change-preview:{jq_bin} {jq_arg_prefix} {{q}} \
-             {input_file_paths}"
+            "--bind=alt-space:change-prompt({null_flag_standalone}> )+change-preview:{jq_bin} \
+             {jq_arg_prefix} {{q}} {input_file_paths}"
         ),
     ])
     .arg(external(
