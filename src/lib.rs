@@ -100,7 +100,7 @@ fn print_verbose_version(opt: &Opt) {
     println!("{} {}", clap::crate_name!(), clap::crate_version!());
     println!();
     print_cmd_version(&opt.fzf_bin, "--version");
-    print_cmd_version(&opt.bin, "--version");
+    print_cmd_version(&opt.jq_bin, "--version");
     print_cmd_version("bat", "--version");
     print_cmd_version("vd", "--version");
     print_cmd_version(&opt.editor, "--version");
@@ -131,7 +131,7 @@ impl<'a> std::fmt::Display for InputFile<'a> {
 }
 
 pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error> {
-    let jq_bin = &opt.bin;
+    let jq_bin = &opt.jq_bin;
 
     let mut jq_arg_prefix = if opt.use_default_args {
         [DEFAULT_JQ_ARG_PREFIX, &[&opt.color_flag]]
