@@ -52,7 +52,7 @@ pub struct Opt {
     /// Arguments to pass to the editor
     ///
     /// This should accept reading from standard input, and should block until it quits.
-    #[arg(long, default_value = "-c 'set ft=json' -")]
+    #[arg(long, allow_hyphen_values = true, default_value = "-c 'set ft=json' -")]
     pub editor_options: Vec<String>,
 
     /// JSON files to read from (defaults to standard input)
