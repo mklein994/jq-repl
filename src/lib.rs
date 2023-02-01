@@ -151,17 +151,6 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
 
     let jq_history_file = opt.history_file.display();
 
-    let external = |key: &str, cmd: &str| {
-        format!(
-            "--bind={key}:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} \
-             {input_file_paths} | {cmd}"
-        )
-    };
-
-    let external_with_color = |key: &str, cmd: &str| {
-        format!("--bind={key}:execute:{jq_bin} {jq_arg_prefix} {{q}} {input_file_paths} | {cmd}")
-    };
-
     let null_flag = if opt.null_input { "n" } else { "" };
 
     let null_flag_standalone = if opt.null_input { "-n" } else { "" };
@@ -227,17 +216,29 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
              {jq_arg_prefix} {{q}} {input_file_paths}"
         ),
     ])
-    .arg(external(
-        "alt-e",
-        &format!("{} {}", &opt.editor, &opt.editor_options.join(" ")),
+    .arg(format!(
+        "--bind=alt-e:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
+         {} {}",
+        &opt.editor,
+        &opt.editor_options.join(" ")
     ))
-    .arg(external("alt-v", "vd --filetype json"))
-    .arg(external("alt-V", "vd --filetype csv"))
-    .arg(external_with_color(
-        "alt-l",
-        &format!("{} {}", &opt.pager, &opt.pager_options.join(" ")),
+    .arg(format!(
+        "--bind=alt-v:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
+         vd --filetype json"
     ))
-    .arg(external("alt-L", "bat --language json"))
+    .arg(format!(
+        "--bind=alt-V:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
+         vd --filetype csv"
+    ))
+    .arg(format!(
+        "--bind=alt-l:execute:{jq_bin} {jq_arg_prefix} {{q}} {input_file_paths} | {} {}",
+        &opt.pager,
+        &opt.pager_options.join(" ")
+    ))
+    .arg(format!(
+        "--bind=alt-L:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
+         bat --language json"
+    ))
     .args(&opt.fzf_args)
     .stdin(Stdio::null())
     .stdout(Stdio::inherit());
