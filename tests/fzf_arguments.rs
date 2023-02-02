@@ -2,7 +2,7 @@ use std::process::{Command, Stdio};
 
 #[test]
 fn check_fzf_command_output() {
-    let output = Command::new(env!("CARGO_BIN_EXE_jq-repl"))
+    let output = Command::new(env!(concat!("CARGO_BIN_EXE_", clap::crate_name!())))
         .env_remove("EDITOR")
         .env_remove("PAGER")
         .arg("--history-file")
