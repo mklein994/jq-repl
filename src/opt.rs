@@ -25,6 +25,12 @@ pub struct Opt {
     #[arg(short, long)]
     pub null_input: bool,
 
+    /// Don't interpret input as JSON
+    ///
+    /// The flag passed to jq can be customized with `--raw-input-flag`.
+    #[arg(short = 'R', long)]
+    pub raw_input: bool,
+
     /// Print the fzf command that would be run to stdout and exit.
     #[arg(long)]
     pub show_fzf_command: bool,
@@ -44,6 +50,9 @@ pub struct Opt {
     /// The flag passed to jq inside fzf to use a compact format
     #[arg(long, allow_hyphen_values = true, default_value = "-c")]
     pub compact_flag: String,
+
+    #[arg(long, allow_hyphen_values = true, default_value = "-R")]
+    pub raw_input_flag: String,
 
     /// Editor to open inside fzf
     #[arg(long, env = "EDITOR", default_value = "nvim")]

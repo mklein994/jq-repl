@@ -30,6 +30,10 @@ pub fn run() -> Result<(), Error> {
         opt.args.push("-n".to_string());
     }
 
+    if opt.raw_input {
+        opt.args.push(opt.raw_input_flag.to_string());
+    }
+
     let files = get_files(&opt.files)?;
 
     let input_file_paths = files
