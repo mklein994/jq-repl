@@ -200,12 +200,12 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     ])
     .args([
         format!(
-            "--bind=alt-c:change-prompt(-{null_flag}c> )+preview:{jq_bin} {jq_arg_prefix} {} \
-             {{q}} {input_file_paths}",
+            "--bind=alt-c:change-prompt(-{null_flag}c> )+change-preview:{jq_bin} {jq_arg_prefix} \
+             {} {{q}} {input_file_paths}",
             &opt.compact_flag
         ),
         format!(
-            "--bind=alt-C:change-prompt({null_flag_standalone}> )+preview:{jq_bin} \
+            "--bind=alt-C:change-prompt({null_flag_standalone}> )+change-preview:{jq_bin} \
              {jq_arg_prefix} {{q}} {input_file_paths}"
         ),
     ])

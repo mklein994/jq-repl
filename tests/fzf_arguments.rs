@@ -30,8 +30,8 @@ $'--preview=gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ' \
 $'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:toggle-preview-wrap,home:preview-top,end:preview-bottom' \
 $'--bind=alt-s:change-prompt(-ns> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n --slurp {q} ' \
 $'--bind=alt-S:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ' \
-$'--bind=alt-c:change-prompt(-nc> )+preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c {q} ' \
-$'--bind=alt-C:change-prompt(-n> )+preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ' \
+$'--bind=alt-c:change-prompt(-nc> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c {q} ' \
+$'--bind=alt-C:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ' \
 $'--bind=ctrl-space:change-prompt(-n gron> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | gron --colorize' \
 $'--bind=alt-space:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ' \
 $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | nvim -c \'set ft=json\' -' \
