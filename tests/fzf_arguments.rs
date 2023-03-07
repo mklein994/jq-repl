@@ -35,8 +35,9 @@ $'--bind=alt-C:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --r
 $'--bind=ctrl-space:change-prompt(-n gron> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | gron --colorize' \
 $'--bind=alt-space:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ' \
 $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | nvim -c \'set ft=json\' -' \
-$'--bind=alt-v:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | vd --filetype json' \
-$'--bind=alt-V:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | vd --filetype csv' \
+$'--bind=alt-j:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | vd --filetype json' \
+$'--bind=alt-J:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | vd --filetype jsonl' \
+$'--bind=alt-v:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | vd --filetype csv' \
 $'--bind=alt-l:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q}  | less -R' \
 $'--bind=alt-L:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | bat --language json' < /dev/null
 "##;

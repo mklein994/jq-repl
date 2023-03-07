@@ -227,11 +227,15 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         &opt.editor_options.join(" ")
     ))
     .arg(format!(
-        "--bind=alt-v:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
+        "--bind=alt-j:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
          vd --filetype json"
     ))
     .arg(format!(
-        "--bind=alt-V:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
+        "--bind=alt-J:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
+         vd --filetype jsonl"
+    ))
+    .arg(format!(
+        "--bind=alt-v:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
          vd --filetype csv"
     ))
     .arg(format!(
