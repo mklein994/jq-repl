@@ -186,7 +186,7 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     ])
     .arg(format!(
         "--header={}",
-        ["M-e: editor", "M-v: vd", "M-l: pager", "^<space>: gron"].join(" ⁄ "),
+        ["M-e: editor", "M-j: vd", "M-l: pager", "^<space>: gron"].join(" ⁄ "),
     ))
     .arg(format!("--history={jq_history_file}"))
     .arg("--preview-label-pos=-1")

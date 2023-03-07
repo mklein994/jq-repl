@@ -24,7 +24,7 @@ $'--preview-window=up,99%,border-bottom' \
 $'--info=hidden' \
 --header-first \
 $'--prompt=-n> ' \
-$'--header=M-e: editor \xE2\x81\x84 M-v: vd \xE2\x81\x84 M-l: pager \xE2\x81\x84 ^<space>: gron' \
+$'--header=M-e: editor \xE2\x81\x84 M-j: vd \xE2\x81\x84 M-l: pager \xE2\x81\x84 ^<space>: gron' \
 $'--history=/tmp/jq_repl_history' \
 $'--preview-label-pos=-1' \
 $'--bind=change:transform-preview-label:printf "%s" {q} | charcounter ' \
