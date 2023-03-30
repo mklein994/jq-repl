@@ -12,6 +12,14 @@ pub struct Opt {
     #[arg(long, env = "FZF_BIN", default_value = "fzf")]
     pub fzf_bin: String,
 
+    /// Path to a program that accepts the query string from stdin, and prints a number
+    ///
+    /// Useful for knowing how many characters you have left in the prompt.
+    // https://github.com/junegunn/fzf/blob/ae745d9397bdc8b91f3c1834def3b8ecb0ae57b1/src/constants.go#L29
+    // https://github.com/junegunn/fzf/blob/master/CHANGELOG.md#0175
+    #[arg(long, env = "JQ_REPL_CHARCOUNTER_BIN", default_value = "charcounter")]
+    pub charcounter_bin: String,
+
     /// Path to the history file (use ^P and ^N to navigate it)
     ///
     /// History is only recorded when query is accepted (enter is pressed).

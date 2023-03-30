@@ -172,6 +172,11 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         ["M-e: editor", "M-v: vd", "M-l: pager", "^<space>: gron"].join(" ⁄ "),
     ))
     .arg(format!("--history={jq_history_file}"))
+    .arg("--preview-label-pos=-1")
+    .arg(format!(
+        "--bind=change:transform-preview-label:printf \"%s\" {{q}} | {}",
+        &opt.charcounter_bin
+    ))
     .arg(format!(
         "--preview={jq_bin} {jq_arg_prefix} {{q}} {input_file_paths}"
     ))
