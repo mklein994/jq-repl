@@ -20,6 +20,13 @@ pub struct Opt {
     #[arg(long, env = "JQ_REPL_CHARCOUNTER_BIN", default_value = "charcounter")]
     pub charcounter_bin: String,
 
+    /// Arguments to pass to the "charcounter" binary
+    ///
+    /// For example, if you want to use `wc` as the counter, you could pass `-m`
+    /// to have it return the character count.
+    #[arg(long, allow_hyphen_values = true)]
+    pub charcounter_options: Vec<String>,
+
     /// Path to the history file (use ^P and ^N to navigate it)
     ///
     /// History is only recorded when query is accepted (enter is pressed).

@@ -109,6 +109,23 @@ fn print_verbose_version(opt: &Opt) {
     print_cmd_version("vd", "--version");
     print_cmd_version(&opt.editor, "--version");
     print_cmd_version(&opt.pager, "--version");
+    if &opt.charcounter_bin == "charcounter" {
+        println!(
+            "{}:\t{}",
+            &opt.charcounter_bin,
+            if Command::new(&opt.charcounter_bin)
+                .stdin(Stdio::null())
+                .status()
+                .is_ok()
+            {
+                "OK"
+            } else {
+                "Not Found"
+            }
+        );
+    } else {
+        print_cmd_version(&opt.charcounter_bin, "--version");
+    }
 }
 
 #[derive(Debug)]
@@ -174,8 +191,9 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     .arg(format!("--history={jq_history_file}"))
     .arg("--preview-label-pos=-1")
     .arg(format!(
-        "--bind=change:transform-preview-label:printf \"%s\" {{q}} | {}",
-        &opt.charcounter_bin
+        "--bind=change:transform-preview-label:printf \"%s\" {{q}} | {} {}",
+        &opt.charcounter_bin,
+        &opt.charcounter_options.join(" "),
     ))
     .arg(format!(
         "--preview={jq_bin} {jq_arg_prefix} {{q}} {input_file_paths}"
