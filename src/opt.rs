@@ -89,7 +89,7 @@ pub struct Opt {
     pub pager: String,
 
     /// Options to pass to the pager
-    #[arg(long, allow_hyphen_values = true, default_value = "-R")]
+    #[arg(long, allow_hyphen_values = true, default_value = "")]
     pub pager_options: Vec<String>,
 
     /// Show versions of all relevant executables

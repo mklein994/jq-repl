@@ -40,7 +40,7 @@ $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | n
 $'--bind=alt-j:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | vd --filetype json' \
 $'--bind=alt-J:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c -M {q}  | vd --filetype jsonl' \
 $'--bind=alt-v:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | vd --filetype csv' \
-$'--bind=alt-l:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q}  | less -R' \
+$'--bind=alt-l:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | less ' \
 $'--bind=alt-L:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | bat --language json' < /dev/null
 "##;
 
