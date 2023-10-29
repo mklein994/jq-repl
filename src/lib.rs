@@ -9,13 +9,24 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tempfile::NamedTempFile;
 
-const DEFAULT_JQ_ARG_PREFIX: &[&str] = &[
-    "-L",
-    "~/.jq", // setup the module path
-    "-L",
-    "~/.jq/.jq", // import all modules
-    "--raw-output",
-];
+fn get_jq_arg_prefix(opt: &Opt) -> String {
+    if opt.use_default_args {
+        let default_lib_dir = &opt.jq_repl_lib; // setup the module path
+        let default_lib_prelude = default_lib_dir.join(".jq"); // import all modules
+        let default_arg_prefix = &[
+            "-L",
+            &default_lib_dir.to_string_lossy(),
+            "-L",
+            &default_lib_prelude.to_string_lossy(),
+            "--raw-output",
+        ];
+        [&default_arg_prefix[..], &[&opt.color_flag]]
+            .concat()
+            .join(" ")
+    } else {
+        opt.color_flag.to_string()
+    }
+}
 
 pub fn run() -> Result<(), Error> {
     let mut opt = Opt::parse();
@@ -154,13 +165,7 @@ impl<'a> std::fmt::Display for InputFile<'a> {
 pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error> {
     let jq_bin = &opt.jq_bin;
 
-    let mut jq_arg_prefix = if opt.use_default_args {
-        [DEFAULT_JQ_ARG_PREFIX, &[&opt.color_flag]]
-            .concat()
-            .join(" ")
-    } else {
-        opt.color_flag.to_string()
-    };
+    let mut jq_arg_prefix = get_jq_arg_prefix(opt);
 
     let no_color_flag = &opt.no_color_flag;
 

@@ -1,3 +1,4 @@
+use clap::ValueHint;
 use std::path::PathBuf;
 
 #[allow(clippy::struct_excessive_bools)]
@@ -53,6 +54,16 @@ pub struct Opt {
     /// Disable the default arguments
     #[arg(long = "no-default-args", action(clap::ArgAction::SetFalse))]
     pub use_default_args: bool,
+
+    /// Path to jq library functions directory
+    ///
+    /// Should also have a file inside called `.jq`
+    #[arg(
+        env = "JQ_REPL_LIB",
+        default_value = "~/.jq",
+        value_hint = ValueHint::DirPath,
+    )]
+    pub jq_repl_lib: PathBuf,
 
     /// The flag passed to jq inside fzf to show color
     #[arg(long, allow_hyphen_values = true, default_value = "-C")]
