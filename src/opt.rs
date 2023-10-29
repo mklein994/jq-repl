@@ -77,9 +77,10 @@ pub struct Opt {
 
     /// Path to jq library functions directory
     ///
-    /// Should also have a file inside called `.jq`
+    /// Should also have a file inside called `.jq`.
     #[arg(
-        env = "JQ_REPL_LIB",
+        long,
+        env,
         default_value = "~/.jq",
         value_hint = ValueHint::DirPath,
     )]
