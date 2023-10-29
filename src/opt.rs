@@ -6,11 +6,21 @@ use std::path::PathBuf;
 #[command(version, about)]
 pub struct Opt {
     /// Executable to call
-    #[arg(long, env = "JQ_BIN", default_value = "gojq")]
+    #[arg(
+        long,
+        env = "JQ_BIN",
+        default_value = "gojq",
+        value_hint = ValueHint::CommandName,
+    )]
     pub jq_bin: String,
 
     /// Override the path to fzf
-    #[arg(long, env = "FZF_BIN", default_value = "fzf")]
+    #[arg(
+        long,
+        env = "FZF_BIN",
+        default_value = "fzf",
+        value_hint = ValueHint::CommandName,
+    )]
     pub fzf_bin: String,
 
     /// Path to a program that accepts the query string from stdin, and prints a number
@@ -18,7 +28,12 @@ pub struct Opt {
     /// Useful for knowing how many characters you have left in the prompt.
     // https://github.com/junegunn/fzf/blob/ae745d9397bdc8b91f3c1834def3b8ecb0ae57b1/src/constants.go#L29
     // https://github.com/junegunn/fzf/blob/master/CHANGELOG.md#0175
-    #[arg(long, env = "JQ_REPL_CHARCOUNTER_BIN", default_value = "charcounter")]
+    #[arg(
+        long,
+        env = "JQ_REPL_CHARCOUNTER_BIN",
+        default_value = "charcounter",
+        value_hint = ValueHint::CommandName,
+    )]
     pub charcounter_bin: String,
 
     /// Arguments to pass to the "charcounter" binary
@@ -31,7 +46,12 @@ pub struct Opt {
     /// Path to the history file (use ^P and ^N to navigate it)
     ///
     /// History is only recorded when query is accepted (enter is pressed).
-    #[arg(long, env = "JQ_REPL_HISTORY", default_value = concat!(env!("HOME"), "/.jq_repl_history"))]
+    #[arg(
+        long,
+        env = "JQ_REPL_HISTORY",
+        default_value = concat!(env!("HOME"), "/.jq_repl_history"),
+        value_hint = ValueHint::DirPath,
+    )]
     pub history_file: PathBuf,
 
     /// Usw `null` as input value
@@ -81,7 +101,12 @@ pub struct Opt {
     pub raw_input_flag: String,
 
     /// Editor to open inside fzf
-    #[arg(long, env = "EDITOR", default_value = "nvim")]
+    #[arg(
+        long,
+        env = "EDITOR",
+        default_value = "nvim",
+        value_hint = ValueHint::CommandName,
+    )]
     pub editor: String,
 
     /// Arguments to pass to the editor
@@ -96,7 +121,7 @@ pub struct Opt {
     pub files: Vec<PathBuf>,
 
     /// Pager to pipe output to
-    #[arg(long, default_value = "less")]
+    #[arg(long, default_value = "less", value_hint = ValueHint::CommandName)]
     pub pager: String,
 
     /// Options to pass to the pager
