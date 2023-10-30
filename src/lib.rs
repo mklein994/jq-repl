@@ -275,7 +275,7 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     ))
     .arg(format!(
         "--bind=alt-L:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
-         bat --language json"
+         bat --language json --paging always"
     ))
     .args(&opt.fzf_args)
     .stdin(Stdio::null())
