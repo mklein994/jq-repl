@@ -24,7 +24,7 @@ $'--preview-window=up,99%,border-bottom' \
 $'--info=hidden' \
 --header-first \
 $'--prompt=-n> ' \
-$'--header=M-e: editor \xE2\x81\x84 M-j: vd \xE2\x81\x84 M-l: pager \xE2\x81\x84 ^<space>: gron' \
+$'--header=M-e: editor \xE2\x81\x84 M-j: vd \xE2\x81\x84 M-l: pager \xE2\x81\x84 M-g: braille \xE2\x81\x84 ^<space>: gron' \
 $'--history=/tmp/jq_repl_history' \
 $'--preview-label-pos=-1' \
 $'--bind=change:transform-preview-label:printf "%s" {q} | charcounter ' \
@@ -36,6 +36,8 @@ $'--bind=alt-c:change-prompt(-nc> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --
 $'--bind=alt-C:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ' \
 $'--bind=ctrl-space:change-prompt(-n gron> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | gron --colorize' \
 $'--bind=alt-space:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ' \
+$'--bind=alt-g:change-prompt(-n braille> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | braille --modeline' \
+$'--bind=alt-G:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ' \
 $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | nvim -c \'set ft=json\' -' \
 $'--bind=alt-j:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | vd --filetype json' \
 $'--bind=alt-J:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c -M {q}  | vd --filetype jsonl' \
