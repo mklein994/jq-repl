@@ -32,7 +32,7 @@ pub fn run() -> Result<(), Error> {
     let mut opt = Opt::parse();
 
     if opt.version_verbose {
-        print_verbose_version(&opt);
+        print_verbose_versions(&opt)?;
         return Ok(());
     }
 
@@ -97,29 +97,29 @@ fn print_fzf_command(fzf_cmd: &Command) {
     );
 }
 
-fn print_verbose_version(opt: &Opt) {
-    let print_cmd_version = |name: &str, version_flag: &str| {
-        let version_output = String::from_utf8(
-            Command::new(name)
-                .arg(version_flag)
-                .output()
-                .unwrap()
-                .stdout,
-        )
-        .unwrap();
-
-        let version = version_output.lines().next().unwrap();
-        println!("{name}:\t{version}");
+fn print_cmd_version(name: &str, version_flag: &str) -> Result<(), Error> {
+    let output = Command::new(name).arg(version_flag).output();
+    let version_output = match output {
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => "(error: not found)".to_string(),
+        Ok(output) => String::from_utf8(output.stdout)?,
+        Err(err) => Err(err)?,
     };
 
+    let version = version_output.lines().next().unwrap();
+    println!("{name}:\t{version}");
+
+    Ok(())
+}
+
+fn print_verbose_versions(opt: &Opt) -> Result<(), Error> {
     println!("{} {}", clap::crate_name!(), clap::crate_version!());
     println!();
-    print_cmd_version(&opt.fzf_bin, "--version");
-    print_cmd_version(&opt.jq_bin, "--version");
-    print_cmd_version("bat", "--version");
-    print_cmd_version("vd", "--version");
-    print_cmd_version(&opt.editor, "--version");
-    print_cmd_version(&opt.pager, "--version");
+    print_cmd_version(&opt.fzf_bin, "--version")?;
+    print_cmd_version(&opt.jq_bin, "--version")?;
+    print_cmd_version("bat", "--version")?;
+    print_cmd_version("vd", "--version")?;
+    print_cmd_version(&opt.editor, "--version")?;
+    print_cmd_version(&opt.pager, "--version")?;
     if &opt.charcounter_bin == "charcounter" {
         println!(
             "{}:\t{}",
@@ -135,8 +135,10 @@ fn print_verbose_version(opt: &Opt) {
             }
         );
     } else {
-        print_cmd_version(&opt.charcounter_bin, "--version");
+        print_cmd_version(&opt.charcounter_bin, "--version")?;
     }
+
+    Ok(())
 }
 
 #[derive(Debug)]
