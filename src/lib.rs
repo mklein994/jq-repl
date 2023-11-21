@@ -165,6 +165,7 @@ impl<'a> std::fmt::Display for InputFile<'a> {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error> {
     let jq_bin = &opt.jq_bin;
 
