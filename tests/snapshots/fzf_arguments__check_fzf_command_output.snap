@@ -22,7 +22,7 @@ $'--bind=alt-c:change-prompt(-nc> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --
 $'--bind=alt-C:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ' \
 $'--bind=ctrl-space:change-prompt(-n gron> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | gron --colorize' \
 $'--bind=alt-space:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ' \
-$'--bind=alt-g:change-prompt(-n braille> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | braille --modeline' \
+$'--bind=alt-g:change-prompt(-n braille> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | BRAILLE_USE_FULL_DEFAULT_HEIGHT=1 braille --modeline' \
 $'--bind=alt-G:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ' \
 $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | nvim -c \'set ft=json\' -' \
 $'--bind=alt-j:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | vd --filetype json' \

@@ -261,7 +261,8 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     .args([
         format!(
             "--bind=alt-g:change-prompt({null_flag_standalone} braille> )+change-preview:{jq_bin} \
-             {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | braille --modeline"
+             {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
+             BRAILLE_USE_FULL_DEFAULT_HEIGHT=1 braille --modeline"
         ),
         format!(
             "--bind=alt-G:change-prompt({null_flag_standalone}> )+change-preview:{jq_bin} \
