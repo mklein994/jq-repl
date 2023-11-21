@@ -98,14 +98,16 @@ fn print_fzf_command(fzf_cmd: &Command) {
 }
 
 fn print_cmd_version(name: &str, version_flag: &str) -> Result<(), Error> {
+    use std::io::ErrorKind;
+
     let output = Command::new(name).arg(version_flag).output();
     let version_output = match output {
-        Err(err) if err.kind() == std::io::ErrorKind::NotFound => "(error: not found)".to_string(),
+        Err(err) if err.kind() == ErrorKind::NotFound => "(error: not found)".to_string(),
         Ok(output) => String::from_utf8(output.stdout)?,
         Err(err) => Err(err)?,
     };
 
-    let version = version_output.lines().next().unwrap();
+    let version = version_output.lines().next().unwrap_or("(error: unknown)");
     println!("{name}:\t{version}");
 
     Ok(())
