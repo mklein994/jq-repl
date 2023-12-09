@@ -43,6 +43,14 @@ pub struct Opt {
     #[arg(long, allow_hyphen_values = true)]
     pub charcounter_options: Vec<String>,
 
+    #[arg(
+        long,
+        env = "JQ_REPL_BRAILLE_BIN",
+        default_value = "braille",
+        value_hint = ValueHint::CommandName,
+    )]
+    pub braille_bin: String,
+
     /// Path to the history file (use ^P and ^N to navigate it)
     ///
     /// History is only recorded when query is accepted (enter is pressed).

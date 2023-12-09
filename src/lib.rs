@@ -120,7 +120,7 @@ fn print_verbose_versions(opt: &Opt) -> Result<(), Error> {
     print_cmd_version(&opt.jq_bin, "--version")?;
     print_cmd_version("bat", "--version")?;
     print_cmd_version("vd", "--version")?;
-    print_cmd_version("braille", "--version")?;
+    print_cmd_version(&opt.braille_bin, "--version")?;
     print_cmd_version(&opt.editor, "--version")?;
     print_cmd_version(&opt.pager, "--version")?;
     if &opt.charcounter_bin == "charcounter" {
@@ -265,7 +265,8 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         format!(
             "--bind=alt-g:change-prompt({null_flag_standalone} braille> )+change-preview:{jq_bin} \
              {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
-             BRAILLE_USE_FULL_DEFAULT_HEIGHT=1 braille --modeline"
+             BRAILLE_USE_FULL_DEFAULT_HEIGHT=1 {braille_bin} --modeline",
+            braille_bin = &opt.braille_bin
         ),
         format!(
             "--bind=alt-G:change-prompt({null_flag_standalone}> )+change-preview:{jq_bin} \
