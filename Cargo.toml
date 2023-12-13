@@ -12,7 +12,7 @@ default-run = "jq-repl"
 [dependencies]
 atty = "0.2.14"
 clap = { version = "4.4.7", features = ["cargo", "deprecated", "derive", "env", "wrap_help"] }
-shell-quote = "0.3.2"
+shell-quote = "0.5.0"
 tempfile = "3.8.1"
 
 [dev-dependencies]

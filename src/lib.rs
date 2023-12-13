@@ -4,6 +4,7 @@ mod opt;
 use clap::Parser;
 pub use error::Error;
 use opt::Opt;
+use shell_quote::Bash;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -77,8 +78,7 @@ fn print_fzf_command(fzf_cmd: &Command) {
     println!();
     println!(
         "{} \\",
-        shell_quote::bash::quote(fzf_cmd.get_program())
-            .to_str()
+        String::from_utf8(Bash::quote(fzf_cmd.get_program()))
             .unwrap()
             .trim()
     );
@@ -87,10 +87,7 @@ fn print_fzf_command(fzf_cmd: &Command) {
         fzf_cmd
             .get_args()
             .map(|arg| {
-                shell_quote::bash::quote(arg)
-                    .to_str()
-                    .expect("Failed to convert arg to UTF-8 string")
-                    .to_string()
+                String::from_utf8(Bash::quote(arg)).expect("Failed to convert arg to UTF-8 string")
             })
             .collect::<Vec<_>>()
             .join(" \\\n"),
@@ -160,9 +157,7 @@ impl<'a> std::fmt::Display for InputFile<'a> {
         write!(
             f,
             "{}",
-            shell_quote::bash::quote(path)
-                .to_str()
-                .expect("Only valid UTF-8 file names are allowed")
+            String::from_utf8(Bash::quote(path)).expect("Only valid UTF-8 file names are allowed")
         )
     }
 }
