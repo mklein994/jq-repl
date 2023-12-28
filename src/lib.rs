@@ -220,7 +220,15 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
             ("alt-w", "toggle-preview-wrap"),
             ("home", "preview-top"),
             ("end", "preview-bottom"),
-            ("tab", "refresh-preview"),
+            (
+                if cfg!(target_os = "android") {
+                    // This key repeats when held in Termux
+                    "up"
+                } else {
+                    "tab"
+                },
+                "refresh-preview"
+            ),
         ]
         .map(|(key, value)| [key, value].join(":"))
         .join(","),
