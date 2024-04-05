@@ -6,7 +6,7 @@ expression: stdout
 
 fzf \
 --disabled \
-$'--preview-window=up,99%,border-bottom' \
+$'--preview-window=up,99%,border-none' \
 $'--info=hidden' \
 --header-first \
 $'--prompt=-n> ' \
@@ -30,4 +30,3 @@ $'--bind=alt-J:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c -M {q}  
 $'--bind=alt-v:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | vd --filetype csv' \
 $'--bind=alt-l:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | less ' \
 $'--bind=alt-L:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q}  | bat --language json --paging always' < /dev/null
-
