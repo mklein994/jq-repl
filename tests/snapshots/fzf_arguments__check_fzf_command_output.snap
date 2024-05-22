@@ -6,7 +6,8 @@ expression: stdout
 
 fzf \
 --disabled \
-$'--preview-window=up,99%,border-none' \
+$'--preview-window=up,99%,border-bottom' \
+--no-separator \
 $'--info=hidden' \
 --header-first \
 $'--prompt=-n> ' \

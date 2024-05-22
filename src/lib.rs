@@ -185,7 +185,8 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     let mut fzf = Command::new(&opt.fzf_bin);
     fzf.args([
         "--disabled",
-        "--preview-window=up,99%,border-none",
+        "--preview-window=up,99%,border-bottom",
+        "--no-separator",
         "--info=hidden",
         "--header-first",
         &format!("--prompt={null_flag_standalone}> "),
