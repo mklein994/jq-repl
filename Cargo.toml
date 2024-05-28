@@ -11,9 +11,9 @@ default-run = "jq-repl"
 
 [dependencies]
 atty = "0.2.14"
-clap = { version = "4.4.7", features = ["cargo", "deprecated", "derive", "env", "wrap_help"] }
+clap = { version = "4.5.4", features = ["cargo", "deprecated", "derive", "env", "wrap_help"] }
 shell-quote = "0.5.0"
-tempfile = "3.8.1"
+tempfile = "3.10.1"
 
 [dev-dependencies]
-insta = "1.34.0"
+insta = "1.39.0"
