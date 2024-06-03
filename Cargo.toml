@@ -1,6 +1,6 @@
 [package]
 name = "jq-repl"
-version = "0.17.6"
+version = "0.17.7"
 description = "Interactively explore JSON with fzf and jq."
 license = "MIT"
 edition = "2021"
