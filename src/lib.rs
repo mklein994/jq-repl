@@ -189,6 +189,7 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         "--no-separator",
         "--info=hidden",
         "--header-first",
+        "--query=.",
         &format!("--prompt={null_flag_standalone}> "),
     ])
     .arg(format!(

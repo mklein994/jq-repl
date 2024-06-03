@@ -10,6 +10,7 @@ $'--preview-window=up,99%,border-bottom' \
 --no-separator \
 $'--info=hidden' \
 --header-first \
+$'--query=.' \
 $'--prompt=-n> ' \
 $'--header=M-e: editor \xE2\x81\x84 M-j: vd \xE2\x81\x84 M-l: pager \xE2\x81\x84 M-g: braille \xE2\x81\x84 ^<space>: gron' \
 $'--history=/tmp/jq_repl_history' \
