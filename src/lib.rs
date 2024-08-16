@@ -4,7 +4,7 @@ mod opt;
 use clap::Parser;
 pub use error::Error;
 use opt::Opt;
-use shell_quote::Bash;
+use shell_quote::{Bash, Quote};
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
