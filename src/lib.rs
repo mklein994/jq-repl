@@ -147,7 +147,7 @@ pub enum InputFile<'a> {
     File(&'a Path),
 }
 
-impl<'a> std::fmt::Display for InputFile<'a> {
+impl std::fmt::Display for InputFile<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let path = match self {
             Self::Stdin(file) => file.path(),
