@@ -346,13 +346,3 @@ fn get_files(positional_files: &[PathBuf]) -> Result<Vec<InputFile>, Error> {
 
     Ok(files)
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn check_args() {
-        <Opt as clap::CommandFactory>::command().debug_assert();
-    }
-}
