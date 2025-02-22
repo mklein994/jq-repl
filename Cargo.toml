@@ -3,7 +3,7 @@ name = "jq-repl"
 version = "0.17.10"
 description = "Interactively explore JSON with fzf and jq."
 license = "MIT"
-edition = "2021"
+edition = "2024"
 authors = ["Matthew Klein <mklein994@gmail.com>"]
 default-run = "jq-repl"
 

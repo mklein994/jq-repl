@@ -12,5 +12,5 @@ fn main() {
         x if x < 297 => print!("\x1b[0;33m{count}/300\x1b[0m"), // yellow
         x if x < 300 => print!("\x1b[0;31m{count}/300\x1b[0m"), // red
         _ => print!("\x1b[1;31m{count}/300\x1b[0m"),            // bold red
-    };
+    }
 }
