@@ -1,11 +1,12 @@
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-const INPUT: &str = "IpsumvoluptatesasperioresquisquamaliasullamxtemporibusNisicommodiquaeratasperioresnemosuntoImpeditconsecteturassumendaofficiaitaquererumporroDolorestemporaadipisciplaceatcommodiquasexcepturifugitEnimnihilmolestiaslkjhaaaalkjhasfdlkjhasfdaoiuqewrqljaoiuvzvczvcfdsaopqljqjafdsjhasfljlasdlkjsafdoiuqwera";
+const INPUT_PARTIAL: &str = "IpsumvoluptatesasperioresquisquamaliasullamxtemporibusNisicommodiquaeratasperioresnemosuntoImpeditco";
 
 fn build_charcounter(length: usize) -> Result<String, Box<dyn std::error::Error>> {
-    assert!(length <= INPUT.len());
-    let input: String = INPUT.chars().take(length).collect();
+    let test_input = INPUT_PARTIAL.repeat(10);
+    assert!(length <= test_input.len());
+    let input: String = test_input.chars().take(length).collect();
 
     let mut charcounter = Command::new(env!("CARGO_BIN_EXE_charcounter"))
         .stdin(Stdio::piped())
@@ -32,12 +33,12 @@ fn blank_when_given_few_characters() {
 
 #[test]
 fn blank_when_given_almost_max_characters() {
-    let output = build_charcounter(299).unwrap();
-    assert_eq!(output, "\x1b[0;31m299/300\x1b[0m");
+    let output = build_charcounter(999).unwrap();
+    assert_eq!(output, "\x1b[0;31m999/1000\x1b[0m");
 }
 
 #[test]
 fn blank_when_given_max_characters() {
-    let output = build_charcounter(300).unwrap();
-    assert_eq!(output, "\x1b[1;31m300/300\x1b[0m");
+    let output = build_charcounter(1_000).unwrap();
+    assert_eq!(output, "\x1b[1;31m1000/1000\x1b[0m");
 }

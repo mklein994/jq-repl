@@ -26,8 +26,8 @@ pub struct Opt {
     /// Path to a program that accepts the query string from stdin, and prints a number
     ///
     /// Useful for knowing how many characters you have left in the prompt.
-    // https://github.com/junegunn/fzf/blob/ae745d9397bdc8b91f3c1834def3b8ecb0ae57b1/src/constants.go#L29
-    // https://github.com/junegunn/fzf/blob/master/CHANGELOG.md#0175
+    // https://github.com/junegunn/fzf/commit/4e5e925e39ead3c04865a1d9595715905ef276d2#diff-12758c127796978b99b1b8ccfc3c2092eb834f3b73c4c2e3fd9ebd5a9d7acda5R29
+    // https://github.com/junegunn/fzf/blob/master/CHANGELOG.md#0603
     #[arg(
         long,
         env = "JQ_REPL_CHARCOUNTER_BIN",
