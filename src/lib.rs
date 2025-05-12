@@ -286,6 +286,13 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         &opt.editor_options.join(" ")
     ))
     .arg(format!(
+        "--bind=alt-E:execute:{jq_bin} {jq_arg_prefix} {compact_flag} {no_color_flag} {{q}} \
+         {input_file_paths} | {} {}",
+        &opt.editor,
+        &opt.editor_options.join(" "),
+        compact_flag = &opt.compact_flag
+    ))
+    .arg(format!(
         "--bind=alt-j:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
          vd --filetype json"
     ))

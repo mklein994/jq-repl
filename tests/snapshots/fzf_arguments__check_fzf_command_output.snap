@@ -27,6 +27,7 @@ $'--bind=alt-space:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq
 $'--bind=alt-g:change-prompt(-n braille> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | BRAILLE_USE_FULL_DEFAULT_HEIGHT=1 braille --modeline' \
 $'--bind=alt-G:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ./tests/foo.json' \
 $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | nvim -c \'set ft=json\' -' \
+$'--bind=alt-E:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c -M {q} ./tests/foo.json | nvim -c \'set ft=json\' -' \
 $'--bind=alt-j:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | vd --filetype json' \
 $'--bind=alt-J:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c -M {q} ./tests/foo.json | vd --filetype jsonl' \
 $'--bind=alt-v:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | vd --filetype csv' \
