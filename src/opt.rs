@@ -94,6 +94,10 @@ pub struct Opt {
     )]
     pub jq_repl_lib: PathBuf,
 
+    /// Disable including ".jq" as part of the default include paths
+    #[arg(long, env)]
+    pub no_default_include: bool,
+
     /// The flag passed to jq inside fzf to show color
     #[arg(long, allow_hyphen_values = true, default_value = "-C")]
     pub color_flag: String,

@@ -14,16 +14,16 @@ fn get_jq_arg_prefix(opt: &Opt) -> String {
     if opt.use_default_args {
         let default_lib_dir = &opt.jq_repl_lib; // setup the module path
         let default_lib_prelude = default_lib_dir.join(".jq"); // import all modules
-        let default_arg_prefix = &[
-            "-L",
-            &default_lib_dir.to_string_lossy(),
-            "-L",
-            &default_lib_prelude.to_string_lossy(),
-            "--raw-output",
-        ];
-        [&default_arg_prefix[..], &[&opt.color_flag]]
-            .concat()
-            .join(" ")
+        let mut default_arg_prefix = vec![format!("-L {}", default_lib_dir.to_string_lossy())];
+        if !opt.no_default_include {
+            default_arg_prefix.push(format!("-L {}", default_lib_prelude.to_string_lossy()));
+        }
+        [
+            &default_arg_prefix[..],
+            &["--raw-output".to_string(), opt.color_flag.to_string()],
+        ]
+        .concat()
+        .join(" ")
     } else {
         opt.color_flag.to_string()
     }
