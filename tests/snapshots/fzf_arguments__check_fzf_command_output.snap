@@ -30,5 +30,5 @@ $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./te
 $'--bind=alt-j:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | vd --filetype json' \
 $'--bind=alt-J:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c -M {q} ./tests/foo.json | vd --filetype jsonl' \
 $'--bind=alt-v:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | vd --filetype csv' \
-$'--bind=alt-l:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | less ' \
+$'--bind=alt-l:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c -M {q} ./tests/foo.json | less ' \
 $'--bind=alt-L:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | bat --language json --paging always' < /dev/null
