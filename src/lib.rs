@@ -201,7 +201,7 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
             "M-g: braille",
             "^<space>: gron"
         ]
-        .join(" ⁄ "),
+        .join(" \u{2044} "),
     ))
     .arg(format!("--history={jq_history_file}"))
     .arg("--preview-label-pos=-1")
