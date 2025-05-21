@@ -183,6 +183,10 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     let null_flag_standalone = if opt.null_input { "-n" } else { "" };
 
     let mut fzf = Command::new(&opt.fzf_bin);
+
+    // Add some jq-repl environment variables so they can be referenced from within
+    fzf.env("JQ_REPL_VERSION", clap::crate_version!());
+
     fzf.args([
         "--disabled",
         "--preview-window=up,99%,border-bottom",
