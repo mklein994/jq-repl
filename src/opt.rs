@@ -69,6 +69,10 @@ pub struct Opt {
     #[arg(short, long)]
     pub null_input: bool,
 
+    /// Pass content to `jq` as standard input (e.g. `jq < /path/to/file`)
+    #[arg(long)]
+    pub pass_as_stdin: bool,
+
     /// Don't interpret input as JSON
     ///
     /// The flag passed to jq can be customized with `--raw-input-flag`.

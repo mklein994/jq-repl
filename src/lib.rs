@@ -48,11 +48,21 @@ pub fn run() -> Result<(), Error> {
 
     let files = get_files(&opt.files)?;
 
-    let input_file_paths = files
+    if files.len() > 1 && opt.pass_as_stdin {
+        return Err(Error::Custom(
+            "must only pass one file with --pass-as-stdin",
+        ));
+    }
+
+    let input_files = files
         .iter()
         .map(std::string::ToString::to_string)
-        .collect::<Vec<_>>()
-        .join(" ");
+        .collect::<Vec<_>>();
+    let input_file_paths = if opt.pass_as_stdin {
+        format!("< {}", input_files.join(" "))
+    } else {
+        input_files.join(" ")
+    };
 
     // Keep a reference to the temp file alive until we quit
     let mut fzf_cmd = build_fzf_cmd(&opt, &input_file_paths)?;
