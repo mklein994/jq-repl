@@ -152,7 +152,7 @@ pub struct Opt {
 
     /// Additional args passed to `jq`
     #[arg(last = true)]
-    pub args: Vec<String>,
+    pub jq_args: Vec<String>,
 }
 
 #[cfg(test)]

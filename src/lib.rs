@@ -39,11 +39,11 @@ pub fn run() -> Result<(), Error> {
 
     opt.null_input = opt.null_input || (atty::is(atty::Stream::Stdin) && opt.files.is_empty());
     if opt.null_input {
-        opt.args.push("-n".to_string());
+        opt.jq_args.push("-n".to_string());
     }
 
     if opt.raw_input {
-        opt.args.push(opt.raw_input_flag.to_string());
+        opt.jq_args.push(opt.raw_input_flag.to_string());
     }
 
     let files = get_files(&opt.files)?;
@@ -170,7 +170,7 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
 
     let no_color_flag = &opt.no_color_flag;
 
-    let args = &opt.args;
+    let args = &opt.jq_args;
     if !args.is_empty() {
         jq_arg_prefix.push(' ');
         jq_arg_prefix.push_str(&args.join(" "));
