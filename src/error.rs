@@ -6,6 +6,7 @@ pub enum Error {
     TmpPersist(tempfile::PersistError),
     Utf8(std::string::FromUtf8Error),
     Fzf(std::process::ExitStatus),
+    Custom(&'static str),
 }
 
 impl fmt::Display for Error {
@@ -15,6 +16,7 @@ impl fmt::Display for Error {
             Self::TmpPersist(err) => err.fmt(f),
             Self::Utf8(err) => err.fmt(f),
             Self::Fzf(err) => write!(f, "{err}"),
+            Self::Custom(err) => write!(f, "{err}"),
         }
     }
 }
