@@ -130,6 +130,7 @@ fn print_verbose_versions(opt: &Opt) -> Result<(), Error> {
     print_cmd_version(&opt.braille_bin, "--version")?;
     print_cmd_version(&opt.editor, "--version")?;
     print_cmd_version(&opt.pager, "--version")?;
+    print_cmd_version("hxselect", "-v")?;
     if &opt.charcounter_bin == "charcounter" {
         println!(
             "{}:\t{}",
