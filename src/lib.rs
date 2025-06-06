@@ -338,7 +338,7 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     Ok(fzf)
 }
 
-fn get_files(positional_files: &[PathBuf]) -> Result<Vec<InputFile>, Error> {
+fn get_files(positional_files: &[PathBuf]) -> Result<Vec<InputFile<'_>>, Error> {
     let mut files: Vec<InputFile> = vec![];
     let cat_file = PathBuf::from("-");
 
