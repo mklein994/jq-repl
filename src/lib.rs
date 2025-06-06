@@ -39,7 +39,7 @@ pub fn run() -> Result<(), Error> {
 
     opt.null_input = opt.null_input || (atty::is(atty::Stream::Stdin) && opt.files.is_empty());
     if opt.null_input {
-        opt.jq_args.push("-n".to_string());
+        opt.jq_args.push(opt.null_input_flag.to_string());
     }
 
     if opt.raw_input {

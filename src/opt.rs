@@ -69,6 +69,10 @@ pub struct Opt {
     #[arg(short, long)]
     pub null_input: bool,
 
+    /// The flag to pass to `jq` inside fzf to indicate null input
+    #[arg(long, default_value = "-n")]
+    pub null_input_flag: String,
+
     /// Pass content to `jq` as standard input (e.g. `jq < /path/to/file`)
     #[arg(long)]
     pub pass_as_stdin: bool,
