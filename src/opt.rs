@@ -1,4 +1,4 @@
-use clap::ValueHint;
+use clap::{ValueHint, builder::ArgPredicate};
 use std::path::PathBuf;
 
 #[allow(clippy::struct_excessive_bools)]
@@ -70,7 +70,11 @@ pub struct Opt {
     pub null_input: bool,
 
     /// The flag to pass to `jq` inside fzf to indicate null input
-    #[arg(long, default_value = "-n")]
+    #[arg(
+        long,
+        default_value = "-n",
+        default_value_if("clean", ArgPredicate::IsPresent, "")
+    )]
     pub null_input_flag: String,
 
     /// Pass content to `jq` as standard input (e.g. `jq < /path/to/file`)
@@ -88,7 +92,11 @@ pub struct Opt {
     pub show_fzf_command: bool,
 
     /// Disable the default arguments
-    #[arg(long = "no-default-args", action(clap::ArgAction::SetFalse))]
+    #[arg(
+        long = "no-default-args",
+        action(clap::ArgAction::SetFalse),
+        default_value_if("clean", ArgPredicate::IsPresent, "true")
+    )]
     pub use_default_args: bool,
 
     /// Path to jq library functions directory
@@ -107,18 +115,38 @@ pub struct Opt {
     pub no_default_include: bool,
 
     /// The flag passed to jq inside fzf to show color
-    #[arg(long, allow_hyphen_values = true, default_value = "-C")]
+    #[arg(
+        long,
+        allow_hyphen_values = true,
+        default_value = "-C",
+        default_value_if("clean", ArgPredicate::IsPresent, "")
+    )]
     pub color_flag: String,
 
     /// The flag passed to jq inside fzf to disable color
-    #[arg(long, allow_hyphen_values = true, default_value = "-M")]
+    #[arg(
+        long,
+        allow_hyphen_values = true,
+        default_value = "-M",
+        default_value_if("clean", ArgPredicate::IsPresent, "")
+    )]
     pub no_color_flag: String,
 
     /// The flag passed to jq inside fzf to use a compact format
-    #[arg(long, allow_hyphen_values = true, default_value = "-c")]
+    #[arg(
+        long,
+        allow_hyphen_values = true,
+        default_value = "-c",
+        default_value_if("clean", ArgPredicate::IsPresent, "")
+    )]
     pub compact_flag: String,
 
-    #[arg(long, allow_hyphen_values = true, default_value = "-R")]
+    #[arg(
+        long,
+        allow_hyphen_values = true,
+        default_value = "-R",
+        default_value_if("clean", ArgPredicate::IsPresent, "")
+    )]
     pub raw_input_flag: String,
 
     /// Editor to open inside fzf
@@ -152,6 +180,13 @@ pub struct Opt {
     /// Show versions of all relevant executables
     #[arg(long)]
     pub version_verbose: bool,
+
+    /// Start from a clean slate and don't provide any defaults
+    ///
+    /// This removes all default flags and options, making it easy to customize them for a command
+    /// that behaves very differently from `jq`.
+    #[arg(long, conflicts_with = "use_default_args")]
+    pub clean: bool,
 
     /// Pass additional arguments to `fzf`, terminated with a semicolon
     #[arg(long, num_args(1..), allow_hyphen_values = true, value_terminator = ";")]

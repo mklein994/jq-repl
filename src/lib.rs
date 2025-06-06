@@ -11,7 +11,7 @@ use std::process::{Command, Stdio};
 use tempfile::NamedTempFile;
 
 fn get_jq_arg_prefix(opt: &Opt) -> String {
-    if opt.use_default_args {
+    if !opt.clean && opt.use_default_args {
         let default_lib_dir = &opt.jq_repl_lib; // setup the module path
         let default_lib_prelude = default_lib_dir.join(".jq"); // import all modules
         let mut default_arg_prefix = vec![format!("-L {}", default_lib_dir.to_string_lossy())];
