@@ -20,12 +20,12 @@ fn get_jq_arg_prefix(opt: &Opt) -> String {
         }
         [
             &default_arg_prefix[..],
-            &["--raw-output".to_string(), opt.color_flag.to_string()],
+            &["--raw-output".to_string(), opt.color_flag.clone()],
         ]
         .concat()
         .join(" ")
     } else {
-        opt.color_flag.to_string()
+        opt.color_flag.clone()
     }
 }
 
@@ -39,11 +39,11 @@ pub fn run() -> Result<(), Error> {
 
     opt.null_input = opt.null_input || (atty::is(atty::Stream::Stdin) && opt.files.is_empty());
     if opt.null_input {
-        opt.jq_args.push(opt.null_input_flag.to_string());
+        opt.jq_args.push(opt.null_input_flag.clone());
     }
 
     if opt.raw_input {
-        opt.jq_args.push(opt.raw_input_flag.to_string());
+        opt.jq_args.push(opt.raw_input_flag.clone());
     }
 
     let files = get_files(&opt.files)?;
