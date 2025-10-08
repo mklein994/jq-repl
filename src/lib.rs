@@ -37,6 +37,12 @@ pub fn run() -> Result<(), Error> {
         return Ok(());
     }
 
+    if let Some(shell) = opt.completion {
+        let mut cmd = <Opt as clap::CommandFactory>::command();
+        clap_complete::generate(shell, &mut cmd, clap::crate_name!(), &mut std::io::stdout());
+        return Ok(());
+    }
+
     opt.null_input = opt.null_input || (atty::is(atty::Stream::Stdin) && opt.files.is_empty());
     if opt.null_input {
         opt.jq_args.push(opt.null_input_flag.clone());

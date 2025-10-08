@@ -1,4 +1,5 @@
 use clap::{ValueHint, builder::ArgPredicate};
+use clap_complete::Shell;
 use std::path::PathBuf;
 
 #[allow(clippy::struct_excessive_bools)]
@@ -176,6 +177,10 @@ pub struct Opt {
     /// Options to pass to the pager
     #[arg(long, allow_hyphen_values = true, default_value = "")]
     pub pager_options: Vec<String>,
+
+    /// Print tab-completion for the given shell to stdout
+    #[arg(long, value_enum)]
+    pub completion: Option<Shell>,
 
     /// Show versions of all relevant executables
     #[arg(long)]
