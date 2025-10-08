@@ -222,7 +222,7 @@ checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
 
 [[package]]
 name = "jq-repl"
-version = "0.21.4"
+version = "0.22.0"
 dependencies = [
  "atty",
  "clap",
