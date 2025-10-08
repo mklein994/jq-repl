@@ -244,8 +244,8 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
             ("home", "preview-top"),
             ("end", "preview-bottom"),
             (
-                if cfg!(target_os = "android") {
-                    // This key repeats when held in Termux
+                if cfg!(target_os = "android") && std::env::var("JQ_REPL_TEST").is_err() {
+                    // This key repeats when held in Termux, but the tab key doesn't
                     "up"
                 } else {
                     "tab"

@@ -5,6 +5,7 @@ fn check_fzf_command_output() {
     let output = Command::new(env!(concat!("CARGO_BIN_EXE_", clap::crate_name!())))
         .env_remove("EDITOR")
         .env_remove("PAGER")
+        .env("JQ_REPL_TEST", "true")
         .arg("--history-file")
         .arg("/tmp/jq_repl_history")
         .arg("--show-fzf-command")
