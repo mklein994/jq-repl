@@ -179,7 +179,7 @@ pub struct Opt {
     pub pager_options: Vec<String>,
 
     /// Print tab-completion for the given shell to stdout
-    #[arg(long, value_enum)]
+    #[arg(long, value_enum, value_name = "SHELL")]
     pub completion: Option<Shell>,
 
     /// Show versions of all relevant executables
