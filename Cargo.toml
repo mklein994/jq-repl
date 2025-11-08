@@ -10,7 +10,6 @@ default-run = "jq-repl"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-atty = "0.2.14"
 clap = { version = "4.5.4", features = ["cargo", "deprecated", "derive", "env", "wrap_help"] }
 clap_complete = "4.5.58"
 shell-quote = "0.7.1"

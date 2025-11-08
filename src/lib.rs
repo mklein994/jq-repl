@@ -6,6 +6,7 @@ pub use error::Error;
 use opt::Opt;
 use shell_quote::{Bash, Quote};
 use std::fs::File;
+use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tempfile::NamedTempFile;
@@ -43,7 +44,7 @@ pub fn run() -> Result<(), Error> {
         return Ok(());
     }
 
-    opt.null_input = opt.null_input || (atty::is(atty::Stream::Stdin) && opt.files.is_empty());
+    opt.null_input = opt.null_input || (std::io::stdin().is_terminal() && opt.files.is_empty());
     if opt.null_input {
         opt.jq_args.push(opt.null_input_flag.clone());
     }
@@ -348,7 +349,7 @@ fn get_files(positional_files: &[PathBuf]) -> Result<Vec<InputFile<'_>>, Error> 
     let mut files: Vec<InputFile> = vec![];
     let cat_file = PathBuf::from("-");
 
-    let has_piped_input = atty::isnt(atty::Stream::Stdin);
+    let has_piped_input = !std::io::stdin().is_terminal();
 
     for file_name in positional_files {
         if file_name == &cat_file {
