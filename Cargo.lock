@@ -202,7 +202,7 @@ checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
 
 [[package]]
 name = "jq-repl"
-version = "0.22.1"
+version = "0.22.2"
 dependencies = [
  "clap",
  "clap_complete",
