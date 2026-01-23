@@ -17,7 +17,7 @@ $'--history=/tmp/jq_repl_history' \
 $'--preview-label-pos=-1' \
 $'--bind=change:transform-preview-label:printf "%s" {q} | charcounter ' \
 $'--preview=gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ./tests/foo.json' \
-$'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:toggle-preview-wrap,home:preview-top,end:preview-bottom,tab:refresh-preview' \
+$'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:toggle-preview-wrap,home:preview-top,end:preview-bottom' \
 $'--bind=alt-s:change-prompt(-ns> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n --slurp {q} ./tests/foo.json' \
 $'--bind=alt-S:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ./tests/foo.json' \
 $'--bind=alt-c:change-prompt(-nc> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c {q} ./tests/foo.json' \
@@ -29,6 +29,7 @@ $'--bind=alt-G:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --r
 $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | nvim -c \'set ft=json\' -' \
 $'--bind=alt-E:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c -M {q} ./tests/foo.json | nvim -c \'set ft=json\' -' \
 $'--bind=alt-j:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | vd --filetype json' \
+$'--bind=tab:transform-query:echo {q} | _jq-repl-tab-completion' \
 $'--bind=alt-J:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c -M {q} ./tests/foo.json | vd --filetype jsonl' \
 $'--bind=alt-v:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | vd --filetype csv' \
 $'--bind=alt-l:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c -M {q} ./tests/foo.json | less ' \

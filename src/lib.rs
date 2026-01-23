@@ -244,15 +244,15 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
             ("alt-w", "toggle-preview-wrap"),
             ("home", "preview-top"),
             ("end", "preview-bottom"),
-            (
-                if cfg!(target_os = "android") && std::env::var("JQ_REPL_TEST").is_err() {
-                    // This key repeats when held in Termux, but the tab key doesn't
-                    "up"
-                } else {
-                    "tab"
-                },
-                "refresh-preview"
-            ),
+            // (
+            //     if cfg!(target_os = "android") && std::env::var("JQ_REPL_TEST").is_err() {
+            //         // This key repeats when held in Termux, but the tab key doesn't
+            //         "up"
+            //     } else {
+            //         "tab"
+            //     },
+            //     "refresh-preview"
+            // ),
         ]
         .map(|(key, value)| [key, value].join(":"))
         .join(","),
@@ -318,6 +318,7 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         "--bind=alt-j:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
          vd --filetype json"
     ))
+    .arg("--bind=tab:transform-query:echo {q} | _jq-repl-tab-completion")
     .arg(format!(
         "--bind=alt-J:execute:{jq_bin} {jq_arg_prefix} {compact_flag} {no_color_flag} {{q}} \
          {input_file_paths} | vd --filetype jsonl",
