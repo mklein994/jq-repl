@@ -23,7 +23,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .collect();
 
     if candidates.is_empty() {
-        print!("{input}")
+        print!("{input}");
     } else if candidates.len() == 1 {
         let command = candidates[0];
         if let Some(prefix) = prefix {
@@ -32,9 +32,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
             print!("{command}");
         }
     } else {
-        eprintln!("{candidates:?}");
         print!("{input}");
-    };
+    }
 
     Ok(())
 }
