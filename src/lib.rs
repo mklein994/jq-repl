@@ -138,12 +138,14 @@ fn print_verbose_versions(opt: &Opt) -> Result<(), Error> {
     print_cmd_version(&opt.editor, "--version")?;
     print_cmd_version(&opt.pager, "--version")?;
     print_cmd_version("hxselect", "-v")?;
-    if &opt.charcounter_bin == "charcounter" {
+
+    let print_builtin_command = |cmd: &str| {
         println!(
             "{}:\t{}",
-            &opt.charcounter_bin,
-            if Command::new(&opt.charcounter_bin)
+            cmd,
+            if Command::new(cmd)
                 .stdin(Stdio::null())
+                .stdout(Stdio::null())
                 .status()
                 .is_ok()
             {
@@ -152,8 +154,18 @@ fn print_verbose_versions(opt: &Opt) -> Result<(), Error> {
                 "Not Found"
             }
         );
+    };
+
+    if &opt.charcounter_bin == "charcounter" {
+        print_builtin_command(&opt.charcounter_bin);
     } else {
         print_cmd_version(&opt.charcounter_bin, "--version")?;
+    }
+
+    if &opt.completion_bin == "_jq-repl-tab-completion" {
+        print_builtin_command(&opt.completion_bin);
+    } else {
+        print_cmd_version(&opt.completion_bin, "--version")?;
     }
 
     Ok(())

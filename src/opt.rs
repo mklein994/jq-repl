@@ -44,6 +44,15 @@ pub struct Opt {
     #[arg(long, allow_hyphen_values = true)]
     pub charcounter_options: Vec<String>,
 
+    /// Path to a program used for dynamic tab completion within jq-repl
+    #[arg(
+        long,
+        env = "JQ_REPL_COMPLETION_BIN",
+        default_value = "_jq-repl-tab-completion",
+        value_hint = ValueHint::CommandName,
+    )]
+    pub completion_bin: String,
+
     #[arg(
         long,
         env = "JQ_REPL_BRAILLE_BIN",
