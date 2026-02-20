@@ -254,6 +254,7 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
             ("pgup", "preview-page-up"),
             ("pgdn", "preview-page-down"),
             ("alt-w", "toggle-preview-wrap"),
+            ("alt-W", "toggle-preview-wrap-word"),
             ("home", "preview-top"),
             ("end", "preview-bottom"),
             // (
