@@ -12,9 +12,11 @@ $ fzf --disabled --preview 'gojq {q} <file.json>'
 
 That's the core of this program. Everything else is to make this process nicer: better file handling, dynamic shortcuts, default arguments, and so on.
 
-> **Warning**
+> \[!WARNING]
 >
-> :warning: This project is highly experimental, built to scratch an itch, so it might not be right for you. Consider this project unstable until the 1.0 release, as there may be breaking changes any time I feel like it. That being said, I've been using this tool for a number of years now, and it's bwen game-changing, so it might be worth trying out yourself.
+> This project is highly experimental, built to scratch an itch, so it might not be right for you. Consider this project unstable until the 1.0 release, as there may be breaking changes any time I feel like it. That being said, I've been using this tool for a number of years now, and it's been game-changing, so it might be worth trying out yourself.
+>
+> See also: <https://hannahilea.com/blog/houseplant-programming/>
 
 ## Usage
 
@@ -64,13 +66,13 @@ Released under MIT (see [LICENSE](/LICENSE)). Note that any program called on by
 
 ## Why?
 
-I was learning jq (…I still am, but I was at the time too), and found the default repl cycle too slow, and wanted something more shortcut-friendly than <https://jqplay.org>. I discovered each of these tools over time (`fzf`, `jq`, `vd`, `gron`…) and thought "hey, what if I built a tool to put these together?", and the rest is history.
+I created this tool because I wanted to learn jq faster. I started with `echo { "some": "json" } | jq 'foo | map(bar)'`, but found that to be too slow for learning: I wanted to see the results of what I typed _now_, without having to scroll through the output or hit save in an editor. In my search for a good tool, I came across [this Hacker News comment](https://news.ycombinator.com/item?id=32909793) and decided to build around that myself.
 
 ## Why Rust?
 
 Because I wanted to. :grin:
 
-I don't trust myself to dothis correctly in Bash, and I find it difficult to manage complex shell arguments and handle all the shell quoting. :slightly_smiling_face:
+I don't trust myself to do this correctly in Bash, and I find it difficult to manage complex shell arguments and handle all the shell quoting. :slightly_smiling_face:
 
 ## Inspiration
 
