@@ -2,11 +2,19 @@
 
 An interactive JSON explorer.
 
-This is essentially a mix of shell tools that are useful for exploring JSON documents put glued together to produce an interactive tool for transforming, viewing, and otherwise exploring JSON.
+This is essentially a mix of shell tools that are useful for exploring JSON documents glued together to produce an interactive tool for transforming, viewing, and otherwise exploring JSON.
+
+The gist of this program comes from this:
+
+```console
+$ fzf --disabled --preview 'gojq {q} <file.json>'
+```
+
+That's the core of this program. Everything else is to make this process nicer: better file handling, dynamic shortcuts, default arguments, and so on.
 
 > **Warning**
 >
-> :warning: This project is highly experimental, and until the 1.0 release, expect breaking changes that don't follow Semantic Versioning yet. Plans to support SemVer will be considered once this feels Stable™[^1].
+> :warning: This project is highly experimental, built to scratch an itch, so it might not be right for you. Consider this project unstable until the 1.0 release, as there may be breaking changes any time I feel like it. That being said, I've been using this tool for a number of years now, and it's bwen game-changing, so it might be worth trying out yourself.
 
 ## Usage
 
@@ -52,22 +60,20 @@ This tool was built using the amazing work done by the tools it calls. Note that
 
 ## License
 
-Released under MIT (see [LICENSE](/LICENSE)). Note that any program called on by this is subject to its own license and terms[^2].
+Released under MIT (see [LICENSE](/LICENSE)). Note that any program called on by this is subject to its own license and terms[^1].
 
 ## Why?
 
-I was learning jq (…I still am, but I was at the time too), and found the default repl cycle too slow, and wanted something more shortcut-friendly than <https://jqplay.org>. I discovered each of these tools over time (`fzf`, `jq`, `vd`, `gron`…) and thought "hey…", and the rest is history.
+I was learning jq (…I still am, but I was at the time too), and found the default repl cycle too slow, and wanted something more shortcut-friendly than <https://jqplay.org>. I discovered each of these tools over time (`fzf`, `jq`, `vd`, `gron`…) and thought "hey, what if I built a tool to put these together?", and the rest is history.
 
 ## Why Rust?
 
 Because I wanted to. :grin:
 
-I don't trust myself not to make a mistake in Bash, and I find it difficult to manage complex shell arguments and handle all the complex shell quoting[^3]. Besides, I don't know Python. :slightly_smiling_face:
+I don't trust myself to dothis correctly in Bash, and I find it difficult to manage complex shell arguments and handle all the shell quoting. :slightly_smiling_face:
 
 ## Inspiration
 
 - [Implementing a jq REPL with fzf](https://gist.github.com/reegnz/b9e40993d410b75c2d866441add2cb55)
 
-[^1]: Whatever _that_ means.
-[^2]: I am not a lawyer, so if I'm making a mistake here, please let me know!
-[^3]: I'm sure there are a lot of bugs hiding in how stuff is quoted that I'm not aware of. If you find any, let me know!
+[^1]: I am not a lawyer, so if I'm making a mistake here, please let me know!
