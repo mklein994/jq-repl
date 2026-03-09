@@ -32,7 +32,7 @@ pub struct Opt {
     #[arg(
         long,
         env = "JQ_REPL_CHARCOUNTER_BIN",
-        default_value = "charcounter",
+        default_value = "_jq-repl-charcounter",
         value_hint = ValueHint::CommandName,
     )]
     pub charcounter_bin: String,

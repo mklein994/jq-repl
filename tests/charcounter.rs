@@ -8,7 +8,7 @@ fn build_charcounter(length: usize) -> Result<String, Box<dyn std::error::Error>
     assert!(length <= test_input.len());
     let input: String = test_input.chars().take(length).collect();
 
-    let mut charcounter = Command::new(env!("CARGO_BIN_EXE_charcounter"))
+    let mut charcounter = Command::new(env!("CARGO_BIN_EXE__jq-repl-charcounter"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()?;

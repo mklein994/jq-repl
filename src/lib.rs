@@ -156,7 +156,7 @@ fn print_verbose_versions(opt: &Opt) -> Result<(), Error> {
         );
     };
 
-    if &opt.charcounter_bin == "charcounter" {
+    if &opt.charcounter_bin == "_jq-repl-charcounter" {
         print_builtin_command(&opt.charcounter_bin);
     } else {
         print_cmd_version(&opt.charcounter_bin, "--version")?;
