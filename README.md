@@ -66,7 +66,7 @@ Released under MIT (see [LICENSE](/LICENSE)). Note that any program called on by
 
 ## Why?
 
-I created this tool because I wanted to learn jq faster. I started with `echo { "some": "json" } | jq 'foo | map(bar)'`, but found that to be too slow for learning: I wanted to see the results of what I typed _now_, without having to scroll through the output or hit save in an editor. In my search for a good tool, I came across [this Hacker News comment](https://news.ycombinator.com/item?id=32909793) and decided to build around that myself.
+I created this tool because I wanted to learn jq faster. I started with `echo '{ "some": "json" }' | jq 'foo | map(bar)'`, but found that to be too slow for learning: I wanted to see the results of what I typed _now_, without having to scroll through the output or hit save in an editor. In my search for a good tool, I came across [this Hacker News comment](https://news.ycombinator.com/item?id=32909793) and decided to build around that myself.
 
 ## Why Rust?
 
@@ -77,5 +77,9 @@ I don't trust myself to do this correctly in Bash, and I find it difficult to ma
 ## Inspiration
 
 - [Implementing a jq REPL with fzf](https://gist.github.com/reegnz/b9e40993d410b75c2d866441add2cb55)
+
+## Wait… isn't this a TUI, not a REPL?
+
+Yeah, about that… to be honest, I didn't know the difference until much later. I feel like sticking with the current name, since it's muscle memory now, but for the pedantics out there, I appologize.
 
 [^1]: I am not a lawyer, so if I'm making a mistake here, please let me know!
