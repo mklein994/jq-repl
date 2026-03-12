@@ -208,10 +208,6 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
 
     let jq_history_file = opt.history_file.display();
 
-    let null_flag = if opt.null_input { "n" } else { "" };
-
-    let null_flag_standalone = if opt.null_input { "-n" } else { "" };
-
     let mut fzf = Command::new(&opt.fzf_bin);
 
     // Add some jq-repl environment variables so they can be referenced from within
@@ -224,7 +220,7 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         "--info=hidden",
         "--header-first",
         "--query=.",
-        &format!("--prompt={null_flag_standalone}> "),
+        &format!("--prompt=-{}> ", if opt.null_input { "n" } else { "" }),
     ])
     .arg(format!(
         "--header={}",
@@ -272,35 +268,34 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     ))
     .args([
         format!(
-            "--bind=alt-c:change-prompt(-{null_flag}c> )+change-preview:{jq_bin} {jq_arg_prefix} \
-             {} {{q}} {input_file_paths}",
+            "--bind=alt-c:transform-prompt(_jq-repl-prompt -f +c)+change-preview:{jq_bin} \
+             {jq_arg_prefix} {} {{q}} {input_file_paths}",
             &opt.compact_flag
         ),
         format!(
-            "--bind=alt-C:change-prompt({null_flag_standalone}> )+change-preview:{jq_bin} \
+            "--bind=alt-C:transform-prompt(_jq-repl-prompt -f -c)+change-preview:{jq_bin} \
              {jq_arg_prefix} {{q}} {input_file_paths}"
         ),
     ])
     .args([
         format!(
-            "--bind=ctrl-space:change-prompt({null_flag_standalone} gron> \
-             )+change-preview:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
-             gron --colorize"
+            "--bind=ctrl-space:transform-prompt(_jq-repl-prompt -p gron)+change-preview:{jq_bin} \
+             {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | gron --colorize"
         ),
         format!(
-            "--bind=alt-space:change-prompt({null_flag_standalone}> )+change-preview:{jq_bin} \
+            "--bind=alt-space:transform-prompt(_jq-repl-prompt -p)+change-preview:{jq_bin} \
              {jq_arg_prefix} {{q}} {input_file_paths}"
         ),
     ])
     .args([
         format!(
-            "--bind=alt-g:change-prompt({null_flag_standalone} braille> )+change-preview:{jq_bin} \
+            "--bind=alt-g:transform-prompt(_jq-repl-prompt -p braille)+change-preview:{jq_bin} \
              {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
              BRAILLE_USE_FULL_DEFAULT_HEIGHT=1 {braille_bin} --modeline",
             braille_bin = &opt.braille_bin
         ),
         format!(
-            "--bind=alt-G:change-prompt({null_flag_standalone}> )+change-preview:{jq_bin} \
+            "--bind=alt-G:transform-prompt(_jq-repl-prompt -p)+change-preview:{jq_bin} \
              {jq_arg_prefix} {{q}} {input_file_paths}"
         ),
     ])

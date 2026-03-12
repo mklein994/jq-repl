@@ -18,12 +18,12 @@ $'--preview-label-pos=-1' \
 $'--bind=change:transform-preview-label:printf "%s" {q} | _jq-repl-charcounter ' \
 $'--preview=gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ./tests/foo.json' \
 $'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:toggle-preview-wrap,alt-W:toggle-preview-wrap-word,home:preview-top,end:preview-bottom' \
-$'--bind=alt-c:change-prompt(-nc> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c {q} ./tests/foo.json' \
-$'--bind=alt-C:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ./tests/foo.json' \
-$'--bind=ctrl-space:change-prompt(-n gron> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | gron --colorize' \
-$'--bind=alt-space:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ./tests/foo.json' \
-$'--bind=alt-g:change-prompt(-n braille> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | BRAILLE_USE_FULL_DEFAULT_HEIGHT=1 braille --modeline' \
-$'--bind=alt-G:change-prompt(-n> )+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ./tests/foo.json' \
+$'--bind=alt-c:transform-prompt(_jq-repl-prompt -f +c)+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c {q} ./tests/foo.json' \
+$'--bind=alt-C:transform-prompt(_jq-repl-prompt -f -c)+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ./tests/foo.json' \
+$'--bind=ctrl-space:transform-prompt(_jq-repl-prompt -p gron)+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | gron --colorize' \
+$'--bind=alt-space:transform-prompt(_jq-repl-prompt -p)+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ./tests/foo.json' \
+$'--bind=alt-g:transform-prompt(_jq-repl-prompt -p braille)+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | BRAILLE_USE_FULL_DEFAULT_HEIGHT=1 braille --modeline' \
+$'--bind=alt-G:transform-prompt(_jq-repl-prompt -p)+change-preview:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n {q} ./tests/foo.json' \
 $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | nvim -c \'set ft=json\' -' \
 $'--bind=alt-E:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -c -M {q} ./tests/foo.json | nvim -c \'set ft=json\' -' \
 $'--bind=alt-j:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -C -n -M {q} ./tests/foo.json | vd --filetype json' \

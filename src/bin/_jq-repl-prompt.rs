@@ -6,6 +6,10 @@ struct PromptOpts {
     #[arg(short, allow_hyphen_values = true)]
     flag: Option<String>,
     #[arg(short)]
+    #[allow(
+        clippy::option_option,
+        reason = "clap understands this means both the flag the argument are optional"
+    )]
     program: Option<Option<String>>,
 }
 
@@ -45,11 +49,11 @@ impl Prompt {
                     self.compact = on;
                 }
                 _ => {}
-            };
+            }
         }
 
         if let Some(program_flag) = &opts.program {
-            self.program = program_flag.clone();
+            self.program.clone_from(program_flag);
         }
     }
 }
@@ -72,16 +76,14 @@ impl std::str::FromStr for Prompt {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let p = s.trim_end_matches("> ");
-        let (flags, program) = p.split_once(" ").unwrap();
+        let (flags, program) = p
+            .split_once(' ')
+            .map_or((p, None), |(flags, program)| (flags, Some(program)));
 
         Ok(Self {
             null: flags.contains('n'),
             compact: flags.contains('c'),
-            program: if program.is_empty() {
-                None
-            } else {
-                Some(program.to_string())
-            },
+            program: program.map(std::string::ToString::to_string),
         })
     }
 }
