@@ -213,6 +213,8 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     // Add some jq-repl environment variables so they can be referenced from within
     fzf.env("JQ_REPL_VERSION", clap::crate_version!());
 
+    let prompt_bin = &opt.prompt_bin;
+
     fzf.args([
         "--disabled",
         "--preview-window=up,99%,border-bottom",
@@ -268,34 +270,34 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     ))
     .args([
         format!(
-            "--bind=alt-c:transform-prompt(_jq-repl-prompt -f +c)+change-preview:{jq_bin} \
+            "--bind=alt-c:transform-prompt({prompt_bin} -f +c)+change-preview:{jq_bin} \
              {jq_arg_prefix} {} {{q}} {input_file_paths}",
             &opt.compact_flag
         ),
         format!(
-            "--bind=alt-C:transform-prompt(_jq-repl-prompt -f -c)+change-preview:{jq_bin} \
+            "--bind=alt-C:transform-prompt({prompt_bin} -f -c)+change-preview:{jq_bin} \
              {jq_arg_prefix} {{q}} {input_file_paths}"
         ),
     ])
     .args([
         format!(
-            "--bind=ctrl-space:transform-prompt(_jq-repl-prompt -p gron)+change-preview:{jq_bin} \
+            "--bind=ctrl-space:transform-prompt({prompt_bin} -p gron)+change-preview:{jq_bin} \
              {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | gron --colorize"
         ),
         format!(
-            "--bind=alt-space:transform-prompt(_jq-repl-prompt -p)+change-preview:{jq_bin} \
+            "--bind=alt-space:transform-prompt({prompt_bin} -p)+change-preview:{jq_bin} \
              {jq_arg_prefix} {{q}} {input_file_paths}"
         ),
     ])
     .args([
         format!(
-            "--bind=alt-g:transform-prompt(_jq-repl-prompt -p braille)+change-preview:{jq_bin} \
+            "--bind=alt-g:transform-prompt({prompt_bin} -p braille)+change-preview:{jq_bin} \
              {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
              BRAILLE_USE_FULL_DEFAULT_HEIGHT=1 {braille_bin} --modeline",
             braille_bin = &opt.braille_bin
         ),
         format!(
-            "--bind=alt-G:transform-prompt(_jq-repl-prompt -p)+change-preview:{jq_bin} \
+            "--bind=alt-G:transform-prompt({prompt_bin} -p)+change-preview:{jq_bin} \
              {jq_arg_prefix} {{q}} {input_file_paths}"
         ),
     ])

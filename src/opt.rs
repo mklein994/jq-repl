@@ -53,6 +53,18 @@ pub struct Opt {
     )]
     pub completion_bin: String,
 
+    /// Path to a program that changes the prompt string
+    ///
+    /// It requires the `FZF_PROMPT` to be set, and prints the modified prompt string. See
+    /// `_jq-repl-prompt --help` for details.
+    #[arg(
+        long,
+        env = "JQ_REPL_PROMPT_BIN",
+        default_value = "_jq-repl-prompt",
+        value_hint = ValueHint::CommandName,
+    )]
+    pub prompt_bin: String,
+
     #[arg(
         long,
         env = "JQ_REPL_BRAILLE_BIN",
