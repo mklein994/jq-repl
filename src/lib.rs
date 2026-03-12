@@ -272,16 +272,6 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     ))
     .args([
         format!(
-            "--bind=alt-s:change-prompt(-{null_flag}s> )+change-preview:{jq_bin} {jq_arg_prefix} \
-             --slurp {{q}} {input_file_paths}"
-        ),
-        format!(
-            "--bind=alt-S:change-prompt({null_flag_standalone}> )+change-preview:{jq_bin} \
-             {jq_arg_prefix} {{q}} {input_file_paths}"
-        ),
-    ])
-    .args([
-        format!(
             "--bind=alt-c:change-prompt(-{null_flag}c> )+change-preview:{jq_bin} {jq_arg_prefix} \
              {} {{q}} {input_file_paths}",
             &opt.compact_flag
