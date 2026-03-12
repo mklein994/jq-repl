@@ -361,12 +361,11 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
 
 fn get_files(positional_files: &[PathBuf]) -> Result<Vec<InputFile<'_>>, Error> {
     let mut files: Vec<InputFile> = vec![];
-    let cat_file = PathBuf::from("-");
 
     let has_piped_input = !std::io::stdin().is_terminal();
 
     for file_name in positional_files {
-        if file_name == &cat_file {
+        if file_name == "-" {
             let mut file = NamedTempFile::new()?;
             std::io::copy(&mut std::io::stdin(), &mut file)?;
 
