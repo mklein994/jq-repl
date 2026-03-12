@@ -1,10 +1,28 @@
 use clap::Parser;
 
+/// Transform a prompt for jq-repl.
+///
+/// This program expects the environment variable `FZF_PROMPT` to be set, e.g. "-> ", "- gron> ".
 #[derive(Debug, Parser)]
 #[command(name = "_jq-repl-prompt", version)]
 struct PromptOpts {
+    /// Set the prompt string to manipulate
+    ///
+    /// This is usually set by `fzf`, but in case you are using a different program, or testing, it
+    /// can be useful to set this manually.
+    #[arg(long, env = "FZF_PROMPT")]
+    prompt: String,
+
+    /// Add or remove a flag from the prompt string
+    ///
+    /// Expects a '+' or '-' character (to add or remove the flag respectively), followed by the
+    /// single character to add or remove from the prompt. Some examples: "+n", "-c".
     #[arg(short, allow_hyphen_values = true)]
     flag: Option<String>,
+
+    /// Add or remove the custom program name from the prompt
+    ///
+    /// Passing only the flag removes the program from the prompt. Some examples: "braille", "gron".
     #[arg(short)]
     #[allow(
         clippy::option_option,
@@ -15,7 +33,7 @@ struct PromptOpts {
 
 fn main() {
     let opts = PromptOpts::parse();
-    let current_prompt = std::env::var("FZF_PROMPT").unwrap();
+    let current_prompt = &opts.prompt;
     let mut prompt = current_prompt.parse::<Prompt>().unwrap();
     prompt.update_from_opts(&opts);
 
