@@ -14,7 +14,7 @@ use jq_repl::Prompt;
 /// There will always be a trailing "> ".
 #[derive(Debug, Parser)]
 #[command(name = "_jq-repl-prompt", version)]
-struct PromptOpts {
+struct PromptOpt {
     /// Set the prompt string to manipulate
     ///
     /// This is usually set by `fzf`, but in case you are using a different program, or testing, it
@@ -41,10 +41,10 @@ struct PromptOpts {
 }
 
 fn main() {
-    let opts = PromptOpts::parse();
-    let current_prompt = &opts.prompt;
+    let opt = PromptOpt::parse();
+    let current_prompt = &opt.prompt;
     let mut prompt = current_prompt.parse::<Prompt>().unwrap();
-    prompt.update(opts.flag, opts.program);
+    prompt.update(opt.flag, opt.program);
 
     println!("{prompt}");
 }
@@ -55,6 +55,6 @@ mod tests {
 
     #[test]
     fn check_args() {
-        <PromptOpts as clap::CommandFactory>::command().debug_assert();
+        <PromptOpt as clap::CommandFactory>::command().debug_assert();
     }
 }
