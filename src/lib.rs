@@ -222,7 +222,20 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         "--info=hidden",
         "--header-first",
         "--query=.",
-        &format!("--prompt=-{}> ", if opt.null_input { "n" } else { "" }),
+        &format!("--prompt={}> ", {
+            let flags = [
+                if opt.raw_input { Some("R") } else { None },
+                if opt.null_input { Some("n") } else { None },
+            ]
+            .into_iter()
+            .flatten()
+            .collect::<String>();
+            if flags.is_empty() {
+                String::new()
+            } else {
+                format!("-{flags}")
+            }
+        }),
     ])
     .arg(format!(
         "--header={}",
