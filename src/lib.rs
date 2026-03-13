@@ -1,9 +1,11 @@
 mod error;
 mod opt;
+mod prompt;
 
 use clap::Parser;
 pub use error::Error;
 use opt::Opt;
+pub use prompt::Prompt;
 use shell_quote::{Bash, Quote};
 use std::fs::File;
 use std::io::IsTerminal;
