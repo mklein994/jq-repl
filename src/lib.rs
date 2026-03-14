@@ -167,11 +167,7 @@ fn print_verbose_versions(opt: &Opt) -> Result<(), Error> {
         print_cmd_version(&opt.completion_bin, "--version")?;
     }
 
-    if &opt.transform_bin == "_jq-repl-transform" {
-        print_builtin_command(&opt.transform_bin);
-    } else {
-        print_cmd_version(&opt.transform_bin, "--version")?;
-    }
+    print_cmd_version(&opt.transform_bin, "--version")?;
 
     Ok(())
 }
