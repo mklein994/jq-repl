@@ -11,12 +11,13 @@ $'--preview-window=up,99%,border-bottom' \
 $'--info=hidden' \
 --header-first \
 $'--query=.' \
-$'--prompt=-n> ' \
 $'--header=M-e: editor \xE2\x81\x84 M-j: vd \xE2\x81\x84 M-l: pager \xE2\x81\x84 M-g: braille \xE2\x81\x84 ^<space>: gron' \
 $'--history=/tmp/jq_repl_history' \
 $'--preview-label-pos=-1' \
-$'--bind=change:transform-preview-label:printf "%s" {q} | _jq-repl-charcounter ' \
+$'--prompt=-n> ' \
 $'--preview=gojq -L ~/.jq -L ~/.jq/.jq --raw-output -n -C {q} ./tests/foo.json' \
+$'--bind=change:transform-preview-label:printf "%s" {q} | _jq-repl-charcounter ' \
+$'--bind=tab:transform-query:echo {q} | _jq-repl-tab-completion' \
 $'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:toggle-preview-wrap,alt-W:toggle-preview-wrap-word,home:preview-top,end:preview-bottom' \
 $'--bind=alt-c:bg-transform:_jq-repl-transform -f +c -- ./tests/foo.json' \
 $'--bind=alt-C:bg-transform:_jq-repl-transform -f -c -- ./tests/foo.json' \
@@ -26,7 +27,6 @@ $'--bind=alt-space,alt-G:bg-transform:_jq-repl-transform -p -- ./tests/foo.json'
 $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -n -M {q} ./tests/foo.json | nvim -c \'set ft=json\' -' \
 $'--bind=alt-E:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -n -c -M {q} ./tests/foo.json | nvim -c \'set ft=json\' -' \
 $'--bind=alt-j:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -n -M {q} ./tests/foo.json | vd --filetype json' \
-$'--bind=tab:transform-query:echo {q} | _jq-repl-tab-completion' \
 $'--bind=alt-J:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -n -c -M {q} ./tests/foo.json | vd --filetype jsonl' \
 $'--bind=alt-v:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -n -M {q} ./tests/foo.json | vd --filetype csv' \
 $'--bind=alt-l:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -n -c -M {q} ./tests/foo.json | less ' \

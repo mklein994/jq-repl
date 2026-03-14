@@ -15,7 +15,7 @@ use std::process::{Command, Stdio};
 use tempfile::NamedTempFile;
 
 fn get_jq_arg_prefix(opt: &Opt) -> String {
-    if !opt.clean && opt.use_default_args {
+    let mut prefix = if !opt.clean && opt.use_default_args {
         let default_lib_dir = &opt.jq_repl_lib; // setup the module path
         let default_lib_prelude = default_lib_dir.join(".jq"); // import all modules
         let mut default_arg_prefix = vec![format!("-L {}", default_lib_dir.to_string_lossy())];
@@ -26,7 +26,14 @@ fn get_jq_arg_prefix(opt: &Opt) -> String {
         default_arg_prefix.join(" ")
     } else {
         String::new()
+    };
+
+    if !opt.jq_args.is_empty() {
+        prefix.push(' ');
+        prefix.push_str(&opt.jq_args.join(" "));
     }
+
+    prefix
 }
 
 pub fn run() -> Result<(), Error> {
@@ -196,17 +203,7 @@ impl std::fmt::Display for InputFile<'_> {
 pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error> {
     let jq_bin = &opt.jq_bin;
 
-    let mut jq_arg_prefix = get_jq_arg_prefix(opt);
-
-    let no_color_flag = &opt.no_color_flag;
-
-    let args = &opt.jq_args;
-    if !args.is_empty() {
-        jq_arg_prefix.push(' ');
-        jq_arg_prefix.push_str(&args.join(" "));
-    }
-
-    let jq_history_file = opt.history_file.display();
+    let jq_arg_prefix = get_jq_arg_prefix(opt);
 
     let mut fzf = Command::new(&opt.fzf_bin);
 
@@ -225,8 +222,7 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
             ),
         );
 
-    let transform_bin = &opt.transform_bin;
-
+    // Setup layout and style
     fzf.args([
         "--disabled",
         "--preview-window=up,99%,border-bottom",
@@ -234,44 +230,48 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         "--info=hidden",
         "--header-first",
         "--query=.",
-        &format!("--prompt={}> ", {
-            let flags = [
-                if opt.raw_input { Some("R") } else { None },
-                if opt.null_input { Some("n") } else { None },
+        &format!(
+            "--header={}",
+            [
+                "M-e: editor",
+                "M-j: vd",
+                "M-l: pager",
+                "M-g: braille",
+                "^<space>: gron"
             ]
-            .into_iter()
-            .flatten()
-            .collect::<String>();
-            if flags.is_empty() {
-                String::new()
-            } else {
-                format!("-{flags}")
-            }
-        }),
+            .join(" \u{2044} "),
+        ),
     ])
-    .arg(format!(
-        "--header={}",
-        [
-            "M-e: editor",
-            "M-j: vd",
-            "M-l: pager",
-            "M-g: braille",
-            "^<space>: gron"
-        ]
-        .join(" \u{2044} "),
-    ))
-    .arg(format!("--history={jq_history_file}"))
-    .arg("--preview-label-pos=-1")
-    .arg(format!(
+    .arg(format!("--history={}", opt.history_file.display()))
+    .arg("--preview-label-pos=-1");
+
+    // Setup the prompt
+    //
+    // Note that this is used along with environment variables to pass state between jq-repl and
+    // _jq-repl-transform, the program that changes how jq is invoked when certain key-bindings are
+    // pressed. As a consequence, the format should be kept consistent between the two.
+    fzf.arg(format!(
+        "--prompt={}",
+        Prompt::new(opt.raw_input, opt.null_input)
+    ));
+
+    fzf.arg(format!(
+        "--preview={jq_bin} {jq_arg_prefix} {} {{q}} {input_file_paths}",
+        &opt.color_flag
+    ));
+
+    fzf.arg(format!(
         "--bind=change:transform-preview-label:printf \"%s\" {{q}} | {} {}",
         &opt.charcounter_bin,
         &opt.charcounter_options.join(" "),
     ))
-    .arg(format!(
-        "--preview={jq_bin} {jq_arg_prefix} {} {{q}} {input_file_paths}",
-        &opt.color_flag
-    ))
-    .arg(format!(
+    .arg("--bind=tab:transform-query:echo {q} | _jq-repl-tab-completion");
+
+    // Simple readline-like key bindings that make life easier
+    //
+    // Fzf has a lot of readline bindings builtin, but we need to adjust it for jq-repl, which
+    // heavily uses the preview pane, not the results list.
+    fzf.arg(format!(
         "--bind={}",
         [
             ("ctrl-k", "kill-line"),
@@ -293,18 +293,56 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         ]
         .map(|(key, value)| [key, value].join(":"))
         .join(","),
-    ))
-    .args([
-        format!("--bind=alt-c:bg-transform:{transform_bin} -f +c -- {input_file_paths}"),
-        format!("--bind=alt-C:bg-transform:{transform_bin} -f -c -- {input_file_paths}"),
-    ])
-    .args([
+    ));
+
+    let transform_bin = &opt.transform_bin;
+
+    // Change jq flags at runtime
+    let runtime_flag_toggle = |fzf: &mut Command, flag, toggle_on_binding, toggle_off_binding| {
+        fzf.args([
+            format!(
+                "--bind={toggle_on_binding}:bg-transform:{transform_bin} -f +{flag} -- \
+                 {input_file_paths}"
+            ),
+            format!(
+                "--bind={toggle_off_binding}:bg-transform:{transform_bin} -f -{flag} -- \
+                 {input_file_paths}"
+            ),
+        ]);
+    };
+    runtime_flag_toggle(&mut fzf, 'c', "alt-c", "alt-C");
+
+    // Add bindings to toggle the renderer. A renderer in this context is a program executed with jq
+    // output, inside jq-repl.
+    fzf.args([
         format!("--bind=ctrl-space:bg-transform:{transform_bin} -p gron -- {input_file_paths}"),
         format!("--bind=alt-g:bg-transform:{transform_bin} -p braille -- {input_file_paths}"),
-        // Reset back to the regular previewer
+        // Reset back to the default jq renderer
         format!("--bind=alt-space,alt-G:bg-transform:{transform_bin} -p -- {input_file_paths}"),
-    ])
-    .arg(format!(
+    ]);
+
+    // Add bindings to open output in an external program
+    add_external_bindings(&mut fzf, jq_bin, &jq_arg_prefix, opt, input_file_paths);
+
+    // Pass additional arguments given on the command line
+    fzf.args(&opt.fzf_args);
+
+    fzf.stdin(Stdio::null()).stdout(Stdio::inherit());
+
+    Ok(fzf)
+}
+
+fn add_external_bindings(
+    fzf: &mut Command,
+    jq_bin: &str,
+    jq_arg_prefix: &str,
+    opt: &Opt,
+    input_file_paths: &str,
+) {
+    let no_color_flag = &opt.no_color_flag;
+    let compact_flag = &opt.compact_flag;
+
+    fzf.arg(format!(
         "--bind=alt-e:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
          {} {}",
         &opt.editor,
@@ -314,18 +352,15 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         "--bind=alt-E:execute:{jq_bin} {jq_arg_prefix} {compact_flag} {no_color_flag} {{q}} \
          {input_file_paths} | {} {}",
         &opt.editor,
-        &opt.editor_options.join(" "),
-        compact_flag = &opt.compact_flag
+        &opt.editor_options.join(" ")
     ))
     .arg(format!(
         "--bind=alt-j:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
          vd --filetype json"
     ))
-    .arg("--bind=tab:transform-query:echo {q} | _jq-repl-tab-completion")
     .arg(format!(
         "--bind=alt-J:execute:{jq_bin} {jq_arg_prefix} {compact_flag} {no_color_flag} {{q}} \
-         {input_file_paths} | vd --filetype jsonl",
-        compact_flag = &opt.compact_flag
+         {input_file_paths} | vd --filetype jsonl"
     ))
     .arg(format!(
         "--bind=alt-v:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
@@ -335,18 +370,12 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         "--bind=alt-l:execute:{jq_bin} {jq_arg_prefix} {compact_flag} {no_color_flag} {{q}} \
          {input_file_paths} | {} {}",
         &opt.pager,
-        &opt.pager_options.join(" "),
-        compact_flag = &opt.compact_flag,
+        &opt.pager_options.join(" ")
     ))
     .arg(format!(
         "--bind=alt-L:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
          bat --language json --paging always"
-    ))
-    .args(&opt.fzf_args)
-    .stdin(Stdio::null())
-    .stdout(Stdio::inherit());
-
-    Ok(fzf)
+    ));
 }
 
 fn get_files(positional_files: &[PathBuf]) -> Result<Vec<InputFile<'_>>, Error> {
