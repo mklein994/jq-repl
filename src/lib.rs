@@ -304,11 +304,9 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     ])
     .args([
         format!("--bind=ctrl-space:bg-transform:{transform_bin} -p gron -- {input_file_paths}"),
-        format!("--bind=alt-space:bg-transform:{transform_bin} -p -- {input_file_paths}"),
-    ])
-    .args([
         format!("--bind=alt-g:bg-transform:{transform_bin} -p braille -- {input_file_paths}"),
-        format!("--bind=alt-G:bg-transform:{transform_bin} -p -- {input_file_paths}"),
+        // Reset back to the regular previewer
+        format!("--bind=alt-space,alt-G:bg-transform:{transform_bin} -p -- {input_file_paths}"),
     ])
     .arg(format!(
         "--bind=alt-e:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \

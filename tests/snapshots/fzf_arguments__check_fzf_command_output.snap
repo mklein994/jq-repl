@@ -21,9 +21,8 @@ $'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:togg
 $'--bind=alt-c:bg-transform:_jq-repl-transform -f +c -- ./tests/foo.json' \
 $'--bind=alt-C:bg-transform:_jq-repl-transform -f -c -- ./tests/foo.json' \
 $'--bind=ctrl-space:bg-transform:_jq-repl-transform -p gron -- ./tests/foo.json' \
-$'--bind=alt-space:bg-transform:_jq-repl-transform -p -- ./tests/foo.json' \
 $'--bind=alt-g:bg-transform:_jq-repl-transform -p braille -- ./tests/foo.json' \
-$'--bind=alt-G:bg-transform:_jq-repl-transform -p -- ./tests/foo.json' \
+$'--bind=alt-space,alt-G:bg-transform:_jq-repl-transform -p -- ./tests/foo.json' \
 $'--bind=alt-e:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -n -M {q} ./tests/foo.json | nvim -c \'set ft=json\' -' \
 $'--bind=alt-E:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -n -c -M {q} ./tests/foo.json | nvim -c \'set ft=json\' -' \
 $'--bind=alt-j:execute:gojq -L ~/.jq -L ~/.jq/.jq --raw-output -n -M {q} ./tests/foo.json | vd --filetype json' \
