@@ -80,7 +80,7 @@ pub struct Opt {
         long,
         env = "JQ_REPL_HISTORY",
         default_value = concat!(env!("HOME"), "/.jq_repl_history"),
-        value_hint = ValueHint::DirPath,
+        value_hint = ValueHint::FilePath,
     )]
     pub history_file: PathBuf,
 
