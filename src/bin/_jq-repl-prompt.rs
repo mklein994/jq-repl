@@ -44,7 +44,7 @@ fn main() {
     let opt = PromptOpt::parse();
     let current_prompt = &opt.prompt;
     let mut prompt = current_prompt.parse::<Prompt>().unwrap();
-    prompt.update(opt.flag, opt.program);
+    prompt.transform(opt.flag, opt.program);
 
     println!("{prompt}");
 }

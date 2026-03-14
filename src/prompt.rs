@@ -7,12 +7,42 @@ pub struct Prompt {
 }
 
 impl Prompt {
+    #[must_use]
     pub fn new(raw: bool, null: bool) -> Self {
         Self {
             raw,
             null,
             compact: false,
             program: None,
+        }
+    }
+
+    #[must_use]
+    pub fn compact(&self) -> bool {
+        self.compact
+    }
+
+    #[must_use]
+    pub fn program(&self) -> Option<&str> {
+        self.program.as_deref()
+    }
+
+    /// Returns the flags that should be passed to jq, derived from the current prompt state.
+    ///
+    /// This is distinct from the prompt display flags: it omits flags like `n` (null-input) and `R`
+    /// (raw-input) that are set once at startup and already present in `jq_arg_prefix`, and only
+    /// includes toggleable runtime flags like `c` (compact).
+    #[must_use]
+    pub fn jq_flags(&self) -> String {
+        let flags: String = [if self.compact { Some("c") } else { None }]
+            .into_iter()
+            .flatten()
+            .collect();
+
+        if flags.is_empty() {
+            flags
+        } else {
+            format!("-{flags}")
         }
     }
 
@@ -33,7 +63,13 @@ impl Prompt {
         }
     }
 
-    pub fn update(&mut self, flag: Option<String>, program: Option<Option<String>>) {
+    /// Transform the prompt string by adding or removing flags or a program name
+    ///
+    /// If a parameter is present, that value is changed as follows:
+    ///
+    ///   - If a flag starts with a '+', it's added, otherwise removed.
+    ///   - If a program string is present, it's added to the prompt string, otherwise removed.
+    pub fn transform(&mut self, flag: Option<String>, program: Option<Option<String>>) {
         if let Some(flag_opt) = flag {
             let [toggle, flag] = flag_opt.chars().collect::<Vec<_>>().try_into().unwrap();
             let on = toggle == '+';
@@ -81,7 +117,8 @@ impl std::str::FromStr for Prompt {
         debug_assert!(s.ends_with("> "));
         let prompt = s.trim_end_matches("> ");
 
-        // If it starts with '-', it has flags, otherwise assume the name of the program
+        // If it starts with '-', it has flags, otherwise assume the name of a program that renders
+        // the output
         let (flags, program) = if prompt.starts_with('-') {
             let p = prompt.trim_start_matches('-');
             if p.contains(' ') {

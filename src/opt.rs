@@ -53,17 +53,17 @@ pub struct Opt {
     )]
     pub completion_bin: String,
 
-    /// Path to a program that changes the prompt string
+    /// Path to a program that atomically updates the fzf prompt and preview command
     ///
-    /// It requires the `FZF_PROMPT` to be set, and prints the modified prompt string. See
-    /// `_jq-repl-prompt --help` for details.
+    /// Reads `FZF_PROMPT`, applies any flag/program changes, and prints fzf actions for
+    /// `transform:` bindings. See `_jq-repl-transform --help` for details.
     #[arg(
         long,
-        env = "JQ_REPL_PROMPT_BIN",
-        default_value = "_jq-repl-prompt",
+        env = "JQ_REPL_TRANSFORM_BIN",
+        default_value = "_jq-repl-transform",
         value_hint = ValueHint::CommandName,
     )]
-    pub prompt_bin: String,
+    pub transform_bin: String,
 
     #[arg(
         long,
