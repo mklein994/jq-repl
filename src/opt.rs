@@ -89,8 +89,8 @@ pub struct Opt {
 
     /// Use `null` as input value
     ///
-    /// This is the default when no file path was given and standard input is from an
-    /// interactive terminal.
+    /// This is the default when no file path was given and standard input is from an interactive
+    /// terminal.
     #[arg(short, long)]
     pub null_input: bool,
 
