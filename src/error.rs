@@ -12,4 +12,6 @@ pub enum Error {
     Fzf(std::process::ExitStatus),
     #[error(transparent)]
     Clap(#[from] clap::Error),
+    #[error(transparent)]
+    Config(#[from] crate::config::ConfigError),
 }

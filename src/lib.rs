@@ -15,6 +15,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tempfile::NamedTempFile;
 
+pub use config::Config;
+
 fn get_jq_arg_prefix(opt: &Opt) -> String {
     let mut prefix = if !opt.clean && opt.use_default_args {
         let default_lib_dir = &opt.jq_repl_lib; // setup the module path
@@ -51,6 +53,18 @@ pub fn run() -> Result<(), Error> {
         return Ok(());
     }
 
+    let config = if opt.clean {
+        Config::default()
+    } else {
+        let config_path = directories::ProjectDirs::from("", "", "jq-repl")
+            .map(|dirs| dirs.config_dir().join("config.toml"));
+
+        match config_path {
+            Some(path) => Config::load(&path)?.unwrap_or_default(),
+            None => Config::default(),
+        }
+    };
+
     opt.null_input = opt.null_input || (std::io::stdin().is_terminal() && opt.files.is_empty());
     if opt.null_input {
         opt.jq_args.push(opt.null_input_flag.clone());
@@ -81,7 +95,7 @@ pub fn run() -> Result<(), Error> {
     };
 
     // Keep a reference to the temp file alive until we quit
-    let mut fzf_cmd = build_fzf_cmd(&opt, &input_file_paths)?;
+    let mut fzf_cmd = build_fzf_cmd(&opt, &config, &input_file_paths)?;
 
     if opt.show_fzf_command {
         print_fzf_command(&fzf_cmd);
@@ -210,7 +224,7 @@ impl std::fmt::Display for InputFile<'_> {
     }
 }
 
-pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error> {
+pub fn build_fzf_cmd(opt: &Opt, config: &Config, input_file_paths: &str) -> Result<Command, Error> {
     let jq_bin = &opt.jq_bin;
 
     let jq_arg_prefix = get_jq_arg_prefix(opt);
@@ -222,15 +236,16 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
         .env("JQ_REPL_JQ_BIN", &opt.jq_bin)
         .env("JQ_REPL_JQ_ARG_PREFIX", &jq_arg_prefix)
         .env("JQ_REPL_COLOR_FLAG", &opt.color_flag)
-        .env("JQ_REPL_NO_COLOR_FLAG", &opt.no_color_flag)
-        .env("JQ_REPL_GRON_CMD", "gron --colorize")
-        .env(
-            "JQ_REPL_BRAILLE_CMD",
-            format!(
-                "BRAILLE_USE_FULL_DEFAULT_HEIGHT=1 {} --modeline",
-                &opt.braille_bin
-            ),
+        .env("JQ_REPL_NO_COLOR_FLAG", &opt.no_color_flag);
+
+    // Pass lens commands as env vars so _jq-repl-transform can build the preview command.
+    // Each lens is exposed as JQ_REPL_LENS_<NAME> (uppercased).
+    for (name, lens) in &config.lens {
+        fzf.env(
+            format!("JQ_REPL_LENS_{}", name.to_uppercase()),
+            &lens.command,
         );
+    }
 
     // Setup layout and style
     fzf.args([
@@ -322,17 +337,29 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
     };
     runtime_flag_toggle(&mut fzf, 'c', "alt-c", "alt-C");
 
-    // Add bindings to toggle the renderer. A renderer in this context is a program executed with jq
-    // output, inside jq-repl.
-    fzf.args([
-        format!("--bind=ctrl-space:bg-transform:{transform_bin} -p gron -- {input_file_paths}"),
-        format!("--bind=alt-g:bg-transform:{transform_bin} -p braille -- {input_file_paths}"),
-        // Reset back to the default jq renderer
-        format!("--bind=alt-space,alt-G:bg-transform:{transform_bin} -p -- {input_file_paths}"),
-    ]);
+    // Add a binding per configured lens to activate it
+    for (name, lens) in &config.lens {
+        fzf.arg(format!(
+            "--bind={}:bg-transform:{transform_bin} -p {name} -- {input_file_paths}",
+            lens.key,
+        ));
+    }
+
+    // Add a single binding to reset back to the default jq view
+    fzf.arg(format!(
+        "--bind={}:bg-transform:{transform_bin} -p -- {input_file_paths}",
+        config.keybinds.reset_lens,
+    ));
 
     // Add bindings to open output in an external program
-    add_external_bindings(&mut fzf, jq_bin, &jq_arg_prefix, opt, input_file_paths);
+    add_external_bindings(
+        &mut fzf,
+        jq_bin,
+        &jq_arg_prefix,
+        opt,
+        config,
+        input_file_paths,
+    );
 
     // Pass additional arguments given on the command line
     fzf.args(&opt.fzf_args);
@@ -347,48 +374,25 @@ fn add_external_bindings(
     jq_bin: &str,
     jq_arg_prefix: &str,
     opt: &Opt,
+    config: &Config,
     input_file_paths: &str,
 ) {
     let no_color_flag = &opt.no_color_flag;
-    let compact_flag = &opt.compact_flag;
 
-    let vd_bin = bash_quote("vd");
-    let bat_bin = bash_quote("bat");
+    for external in config.external.values() {
+        // Extra jq flags (e.g. "-c") are joined and inserted before the no-color flag
+        let extra_flags = if external.jq_flags.is_empty() {
+            String::new()
+        } else {
+            format!("{} ", external.jq_flags.join(" "))
+        };
 
-    fzf.arg(format!(
-        "--bind=alt-e:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
-         {} {}",
-        bash_quote(&opt.editor),
-        &opt.editor_options.join(" ")
-    ))
-    .arg(format!(
-        "--bind=alt-E:execute:{jq_bin} {jq_arg_prefix} {compact_flag} {no_color_flag} {{q}} \
-         {input_file_paths} | {} {}",
-        bash_quote(&opt.editor),
-        &opt.editor_options.join(" ")
-    ))
-    .arg(format!(
-        "--bind=alt-j:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
-         {vd_bin} --filetype json"
-    ))
-    .arg(format!(
-        "--bind=alt-J:execute:{jq_bin} {jq_arg_prefix} {compact_flag} {no_color_flag} {{q}} \
-         {input_file_paths} | {vd_bin} --filetype jsonl"
-    ))
-    .arg(format!(
-        "--bind=alt-v:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
-         {vd_bin} --filetype csv"
-    ))
-    .arg(format!(
-        "--bind=alt-l:execute:{jq_bin} {jq_arg_prefix} {compact_flag} {no_color_flag} {{q}} \
-         {input_file_paths} | {} {}",
-        bash_quote(&opt.pager),
-        &opt.pager_options.join(" ")
-    ))
-    .arg(format!(
-        "--bind=alt-L:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
-         {bat_bin} --language json --paging always"
-    ));
+        fzf.arg(format!(
+            "--bind={}:execute:{jq_bin} {jq_arg_prefix} {extra_flags}{no_color_flag} {{q}} \
+             {input_file_paths} | {}",
+            external.key, external.command,
+        ));
+    }
 }
 
 fn get_files(positional_files: &[PathBuf]) -> Result<Vec<InputFile<'_>>, Error> {
