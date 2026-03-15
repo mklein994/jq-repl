@@ -87,7 +87,7 @@ pub struct Opt {
     #[arg(long, value_hint = ValueHint::FilePath)]
     pub config: Option<PathBuf>,
 
-    /// Usw `null` as input value
+    /// Use `null` as input value
     ///
     /// This is the default when no file path was given and standard input is from an
     /// interactive terminal.
