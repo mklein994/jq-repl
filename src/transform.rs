@@ -1,5 +1,5 @@
 use crate::Prompt;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 /// Configuration for building fzf transform actions.
 ///
@@ -11,7 +11,7 @@ pub struct TransformConfig {
     pub color_flag: String,
     pub no_color_flag: String,
     /// Lens commands keyed by name, sourced from `JQ_REPL_LENS_<NAME>` env vars.
-    pub lenses: HashMap<String, String>,
+    pub lenses: BTreeMap<String, String>,
     pub input_file_paths: String,
 }
 

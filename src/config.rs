@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::path::Path;
 
 /// Top-level configuration, deserialized from `config.toml`.
@@ -6,8 +6,8 @@ use std::path::Path;
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
     pub keybinds: Keybinds,
-    pub lens: HashMap<String, Lens>,
-    pub external: HashMap<String, External>,
+    pub lens: BTreeMap<String, Lens>,
+    pub external: BTreeMap<String, External>,
 }
 
 /// Global key bindings not tied to a specific lens or external tool.
