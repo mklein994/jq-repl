@@ -71,7 +71,10 @@ impl Prompt {
     ///   - If a program string is present, it's added to the prompt string, otherwise removed.
     pub fn transform(&mut self, flag: Option<String>, program: Option<Option<String>>) {
         if let Some(flag_opt) = flag {
-            let [toggle, flag] = flag_opt.chars().collect::<Vec<_>>().try_into().unwrap();
+            let [toggle, flag] =
+                flag_opt.chars().collect::<Vec<_>>().try_into().expect(
+                    "prompt flag option should be '+' or '-' followed by a single character",
+                );
             let on = toggle == '+';
             match flag {
                 'R' => {
