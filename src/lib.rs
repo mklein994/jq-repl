@@ -74,7 +74,7 @@ pub fn run() -> Result<(), Error> {
         .map(std::string::ToString::to_string)
         .collect::<Vec<_>>();
     let input_file_paths = if opt.pass_as_stdin {
-        format!("< {}", input_files.join(" "))
+        format!("< {}", &input_files[0])
     } else {
         input_files.join(" ")
     };
