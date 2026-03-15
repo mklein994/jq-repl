@@ -6,7 +6,7 @@ pub enum Error {
     TmpPersist(tempfile::PersistError),
     Utf8(std::string::FromUtf8Error),
     Fzf(std::process::ExitStatus),
-    Custom(&'static str),
+    Clap(clap::Error),
 }
 
 impl fmt::Display for Error {
@@ -16,7 +16,7 @@ impl fmt::Display for Error {
             Self::TmpPersist(err) => err.fmt(f),
             Self::Utf8(err) => err.fmt(f),
             Self::Fzf(err) => write!(f, "{err}"),
-            Self::Custom(err) => write!(f, "{err}"),
+            Self::Clap(err) => err.fmt(f),
         }
     }
 }
@@ -38,5 +38,11 @@ impl From<tempfile::PersistError> for Error {
 impl From<std::string::FromUtf8Error> for Error {
     fn from(err: std::string::FromUtf8Error) -> Self {
         Self::Utf8(err)
+    }
+}
+
+impl From<clap::Error> for Error {
+    fn from(err: clap::Error) -> Self {
+        Self::Clap(err)
     }
 }

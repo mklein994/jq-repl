@@ -62,9 +62,11 @@ pub fn run() -> Result<(), Error> {
     let files = get_files(&opt.files)?;
 
     if files.len() > 1 && opt.pass_as_stdin {
-        return Err(Error::Custom(
+        let err = <Opt as clap::CommandFactory>::command().error(
+            clap::error::ErrorKind::ArgumentConflict,
             "must only pass one file with --pass-as-stdin",
-        ));
+        );
+        return Err(Error::from(err));
     }
 
     let input_files = files
