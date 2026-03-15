@@ -14,6 +14,7 @@ clap = { version = "4.5.4", features = ["cargo", "deprecated", "derive", "env", 
 clap_complete = "4.5.58"
 shell-quote = "0.7.1"
 tempfile = "3.10.1"
+thiserror = "2.0.18"
 
 [dev-dependencies]
 insta = "1.39.0"
