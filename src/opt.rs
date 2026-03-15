@@ -68,13 +68,18 @@ pub struct Opt {
     /// Path to the history file (use ^P and ^N to navigate it)
     ///
     /// History is only recorded when query is accepted (enter is pressed).
+    /// Defaults to `$XDG_DATA_HOME/jq-repl/history`.
     #[arg(
         long,
         env = "JQ_REPL_HISTORY",
-        default_value = concat!(env!("HOME"), "/.jq_repl_history"),
         value_hint = ValueHint::FilePath,
+        conflicts_with = "no_history",
     )]
-    pub history_file: PathBuf,
+    pub history_file: Option<PathBuf>,
+
+    /// Disable history recording
+    #[arg(long)]
+    pub no_history: bool,
 
     /// Path to the config file
     ///

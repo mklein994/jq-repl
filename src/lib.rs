@@ -68,6 +68,22 @@ pub fn run() -> Result<(), Error> {
         }
     };
 
+    let history_file = if opt.no_history {
+        None
+    } else {
+        opt.history_file.clone().or_else(|| {
+            directories::ProjectDirs::from("", "", "jq-repl")
+                .map(|dirs| dirs.data_dir().join("history"))
+        })
+    };
+
+    // Ensure the history file's parent directory exists so fzf can write to it
+    if let Some(ref path) = history_file
+        && let Some(parent) = path.parent()
+    {
+        std::fs::create_dir_all(parent)?;
+    }
+
     opt.null_input = opt.null_input || (std::io::stdin().is_terminal() && opt.files.is_empty());
     if opt.null_input {
         opt.jq_args.push(opt.null_input_flag.clone());
@@ -98,7 +114,7 @@ pub fn run() -> Result<(), Error> {
     };
 
     // Keep a reference to the temp file alive until we quit
-    let mut fzf_cmd = build_fzf_cmd(&opt, &config, &input_file_paths)?;
+    let mut fzf_cmd = build_fzf_cmd(&opt, &config, history_file.as_deref(), &input_file_paths)?;
 
     if opt.show_fzf_command {
         print_fzf_command(&fzf_cmd);
@@ -234,7 +250,12 @@ impl std::fmt::Display for InputFile<'_> {
     }
 }
 
-pub fn build_fzf_cmd(opt: &Opt, config: &Config, input_file_paths: &str) -> Result<Command, Error> {
+pub fn build_fzf_cmd(
+    opt: &Opt,
+    config: &Config,
+    history_file: Option<&Path>,
+    input_file_paths: &str,
+) -> Result<Command, Error> {
     let jq_bin = &opt.jq_bin;
 
     let jq_arg_prefix = get_jq_arg_prefix(opt);
@@ -259,7 +280,7 @@ pub fn build_fzf_cmd(opt: &Opt, config: &Config, input_file_paths: &str) -> Resu
 
     // Setup layout and style
     let header = {
-        let mut hints = vec![];
+        let mut hints: Vec<String> = Vec::new();
         for (name, lens) in &config.lens {
             hints.push(format!("{}: {name}", key_hint(&lens.key)));
         }
@@ -278,8 +299,11 @@ pub fn build_fzf_cmd(opt: &Opt, config: &Config, input_file_paths: &str) -> Resu
         "--query=.",
         &format!("--header={header}"),
     ])
-    .arg(format!("--history={}", opt.history_file.display()))
     .arg("--preview-label-pos=-1");
+
+    if let Some(path) = history_file {
+        fzf.arg(format!("--history={}", path.display()));
+    }
 
     // Setup the prompt
     //

@@ -12,8 +12,8 @@ $'--info=hidden' \
 --header-first \
 $'--query=.' \
 $'--header=M-g: braille \xE2\x81\x84 ^space: gron \xE2\x81\x84 M-L: bat \xE2\x81\x84 M-e: editor \xE2\x81\x84 M-E: editor-compact \xE2\x81\x84 M-l: pager \xE2\x81\x84 M-v: vd-csv \xE2\x81\x84 M-j: vd-json \xE2\x81\x84 M-J: vd-jsonl' \
-$'--history=/tmp/jq_repl_history' \
 $'--preview-label-pos=-1' \
+$'--history=/tmp/jq_repl_history' \
 $'--prompt=-n> ' \
 $'--preview=gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -C {q} $\'./tests/foo bar.json\'' \
 $'--bind=change:transform-preview-label:printf "%s" {q} | _jq-repl-charcounter ' \
