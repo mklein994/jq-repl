@@ -18,9 +18,9 @@ fn get_jq_arg_prefix(opt: &Opt) -> String {
     let mut prefix = if !opt.clean && opt.use_default_args {
         let default_lib_dir = &opt.jq_repl_lib; // setup the module path
         let default_lib_prelude = default_lib_dir.join(".jq"); // import all modules
-        let mut default_arg_prefix = vec![format!("-L {}", default_lib_dir.to_string_lossy())];
+        let mut default_arg_prefix = vec![format!("-L {}", bash_quote(default_lib_dir))];
         if !opt.no_default_include {
-            default_arg_prefix.push(format!("-L {}", default_lib_prelude.to_string_lossy()));
+            default_arg_prefix.push(format!("-L {}", bash_quote(default_lib_prelude)));
         }
         default_arg_prefix.push("--raw-output".to_string());
         default_arg_prefix.join(" ")
@@ -179,6 +179,17 @@ fn print_verbose_versions(opt: &Opt) -> Result<(), Error> {
     Ok(())
 }
 
+pub fn bash_quote(s: impl AsRef<std::ffi::OsStr>) -> String {
+    String::from_utf8(Bash::quote(s.as_ref())).expect("Bash::quote always produces valid UTF-8")
+}
+
+pub fn bash_quote_join<T: AsRef<std::ffi::OsStr>>(args: impl IntoIterator<Item = T>) -> String {
+    args.into_iter()
+        .map(bash_quote)
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 #[derive(Debug)]
 pub enum InputFile<'a> {
     Stdin(NamedTempFile),
@@ -192,11 +203,7 @@ impl std::fmt::Display for InputFile<'_> {
             Self::File(path) => path,
         };
 
-        write!(
-            f,
-            "{}",
-            String::from_utf8(Bash::quote(path)).expect("Only valid UTF-8 file names are allowed")
-        )
+        write!(f, "{}", bash_quote(path))
     }
 }
 
@@ -262,7 +269,7 @@ pub fn build_fzf_cmd(opt: &Opt, input_file_paths: &str) -> Result<Command, Error
 
     fzf.arg(format!(
         "--bind=change:transform-preview-label:printf \"%s\" {{q}} | {} {}",
-        &opt.charcounter_bin,
+        bash_quote(&opt.charcounter_bin),
         &opt.charcounter_options.join(" "),
     ))
     .arg("--bind=tab:transform-query:echo {q} | _jq-repl-tab-completion");
@@ -342,39 +349,42 @@ fn add_external_bindings(
     let no_color_flag = &opt.no_color_flag;
     let compact_flag = &opt.compact_flag;
 
+    let vd_bin = bash_quote("vd");
+    let bat_bin = bash_quote("bat");
+
     fzf.arg(format!(
         "--bind=alt-e:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
          {} {}",
-        &opt.editor,
+        bash_quote(&opt.editor),
         &opt.editor_options.join(" ")
     ))
     .arg(format!(
         "--bind=alt-E:execute:{jq_bin} {jq_arg_prefix} {compact_flag} {no_color_flag} {{q}} \
          {input_file_paths} | {} {}",
-        &opt.editor,
+        bash_quote(&opt.editor),
         &opt.editor_options.join(" ")
     ))
     .arg(format!(
         "--bind=alt-j:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
-         vd --filetype json"
+         {vd_bin} --filetype json"
     ))
     .arg(format!(
         "--bind=alt-J:execute:{jq_bin} {jq_arg_prefix} {compact_flag} {no_color_flag} {{q}} \
-         {input_file_paths} | vd --filetype jsonl"
+         {input_file_paths} | {vd_bin} --filetype jsonl"
     ))
     .arg(format!(
         "--bind=alt-v:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
-         vd --filetype csv"
+         {vd_bin} --filetype csv"
     ))
     .arg(format!(
         "--bind=alt-l:execute:{jq_bin} {jq_arg_prefix} {compact_flag} {no_color_flag} {{q}} \
          {input_file_paths} | {} {}",
-        &opt.pager,
+        bash_quote(&opt.pager),
         &opt.pager_options.join(" ")
     ))
     .arg(format!(
         "--bind=alt-L:execute:{jq_bin} {jq_arg_prefix} {no_color_flag} {{q}} {input_file_paths} | \
-         bat --language json --paging always"
+         {bat_bin} --language json --paging always"
     ));
 }
 

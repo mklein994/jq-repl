@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut prompt = opts.prompt.parse::<Prompt>().unwrap();
     prompt.transform(opts.flag, opts.program);
 
-    let config = TransformConfig::from_env(opts.input_file_paths.join(" "))?;
+    let config = TransformConfig::from_env(jq_repl::bash_quote_join(&opts.input_file_paths))?;
 
     println!("{}", transform_actions(&prompt, &config));
     Ok(())
