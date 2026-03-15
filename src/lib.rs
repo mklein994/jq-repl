@@ -300,7 +300,10 @@ pub fn build_fzf_cmd(
         bash_quote(&opt.charcounter_bin),
         &opt.charcounter_options.join(" "),
     ))
-    .arg("--bind=tab:transform-query:echo {q} | _jq-repl-tab-completion");
+    .arg(format!(
+        "--bind=tab:transform-query:echo {{q}} | {}",
+        bash_quote(&opt.completion_bin)
+    ));
 
     // Simple readline-like key bindings that make life easier
     //
