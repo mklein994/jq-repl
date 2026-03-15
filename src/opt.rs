@@ -65,14 +65,6 @@ pub struct Opt {
     )]
     pub transform_bin: String,
 
-    #[arg(
-        long,
-        env = "JQ_REPL_BRAILLE_BIN",
-        default_value = "braille",
-        value_hint = ValueHint::CommandName,
-    )]
-    pub braille_bin: String,
-
     /// Path to the history file (use ^P and ^N to navigate it)
     ///
     /// History is only recorded when query is accepted (enter is pressed).
@@ -83,6 +75,12 @@ pub struct Opt {
         value_hint = ValueHint::FilePath,
     )]
     pub history_file: PathBuf,
+
+    /// Path to the config file
+    ///
+    /// Defaults to `$XDG_CONFIG_HOME/jq-repl/config.toml`.
+    #[arg(long, value_hint = ValueHint::FilePath)]
+    pub config: Option<PathBuf>,
 
     /// Usw `null` as input value
     ///
@@ -171,33 +169,10 @@ pub struct Opt {
     )]
     pub raw_input_flag: String,
 
-    /// Editor to open inside fzf
-    #[arg(
-        long,
-        env = "EDITOR",
-        default_value = "nvim",
-        value_hint = ValueHint::CommandName,
-    )]
-    pub editor: String,
-
-    /// Arguments to pass to the editor
-    ///
-    /// This should accept reading from standard input, and should block until it quits.
-    #[arg(long, allow_hyphen_values = true, default_value = "-c 'set ft=json' -")]
-    pub editor_options: Vec<String>,
-
     /// JSON files to read from (defaults to standard input)
     ///
     /// If one of the files is "-", insert stdin at that point.
     pub files: Vec<PathBuf>,
-
-    /// Pager to pipe output to
-    #[arg(long, default_value = "less", value_hint = ValueHint::CommandName)]
-    pub pager: String,
-
-    /// Options to pass to the pager
-    #[arg(long, allow_hyphen_values = true, default_value = "")]
-    pub pager_options: Vec<String>,
 
     /// Print tab-completion for the given shell to stdout
     #[arg(long, value_enum, value_name = "SHELL")]

@@ -11,7 +11,7 @@ $'--preview-window=up,99%,border-bottom' \
 $'--info=hidden' \
 --header-first \
 $'--query=.' \
-$'--header=M-e: editor \xE2\x81\x84 M-j: vd \xE2\x81\x84 M-l: pager \xE2\x81\x84 M-g: braille \xE2\x81\x84 ^<space>: gron' \
+$'--header=M-g: braille \xE2\x81\x84 ^space: gron \xE2\x81\x84 M-L: bat \xE2\x81\x84 M-e: editor \xE2\x81\x84 M-E: editor-compact \xE2\x81\x84 M-l: pager \xE2\x81\x84 M-v: vd-csv \xE2\x81\x84 M-j: vd-json \xE2\x81\x84 M-J: vd-jsonl' \
 $'--history=/tmp/jq_repl_history' \
 $'--preview-label-pos=-1' \
 $'--prompt=-n> ' \
@@ -21,13 +21,13 @@ $'--bind=tab:transform-query:echo {q} | _jq-repl-tab-completion' \
 $'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:toggle-preview-wrap,alt-W:toggle-preview-wrap-word,home:preview-top,end:preview-bottom' \
 $'--bind=alt-c:bg-transform:_jq-repl-transform -f +c -- $\'./tests/foo bar.json\'' \
 $'--bind=alt-C:bg-transform:_jq-repl-transform -f -c -- $\'./tests/foo bar.json\'' \
-$'--bind=ctrl-space:bg-transform:_jq-repl-transform -p gron -- $\'./tests/foo bar.json\'' \
 $'--bind=alt-g:bg-transform:_jq-repl-transform -p braille -- $\'./tests/foo bar.json\'' \
-$'--bind=alt-space,alt-G:bg-transform:_jq-repl-transform -p -- $\'./tests/foo bar.json\'' \
+$'--bind=ctrl-space:bg-transform:_jq-repl-transform -p gron -- $\'./tests/foo bar.json\'' \
+$'--bind=alt-G:bg-transform:_jq-repl-transform -p -- $\'./tests/foo bar.json\'' \
+$'--bind=alt-L:execute:gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -M {q} $\'./tests/foo bar.json\' | bat --language json --paging always' \
 $'--bind=alt-e:execute:gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -M {q} $\'./tests/foo bar.json\' | nvim -c \'set ft=json\' -' \
 $'--bind=alt-E:execute:gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -c -M {q} $\'./tests/foo bar.json\' | nvim -c \'set ft=json\' -' \
-$'--bind=alt-j:execute:gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -M {q} $\'./tests/foo bar.json\' | vd --filetype json' \
-$'--bind=alt-J:execute:gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -c -M {q} $\'./tests/foo bar.json\' | vd --filetype jsonl' \
+$'--bind=alt-l:execute:gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -c -M {q} $\'./tests/foo bar.json\' | less' \
 $'--bind=alt-v:execute:gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -M {q} $\'./tests/foo bar.json\' | vd --filetype csv' \
-$'--bind=alt-l:execute:gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -c -M {q} $\'./tests/foo bar.json\' | less ' \
-$'--bind=alt-L:execute:gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -M {q} $\'./tests/foo bar.json\' | bat --language json --paging always' < /dev/null
+$'--bind=alt-j:execute:gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -M {q} $\'./tests/foo bar.json\' | vd --filetype json' \
+$'--bind=alt-J:execute:gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -c -M {q} $\'./tests/foo bar.json\' | vd --filetype jsonl' < /dev/null

@@ -1,0 +1,41 @@
+[keybinds]
+reset_lens = "alt-G"
+
+[lens.gron]
+command = "gron --colorize"
+key = "ctrl-space"
+
+[lens.braille]
+command = "BRAILLE_USE_FULL_DEFAULT_HEIGHT=1 braille --modeline"
+key = "alt-g"
+
+[external.editor]
+command = "nvim -c 'set ft=json' -"
+key = "alt-e"
+
+[external.editor-compact]
+command = "nvim -c 'set ft=json' -"
+jq_flags = ["-c"]
+key = "alt-E"
+
+[external.vd-json]
+command = "vd --filetype json"
+key = "alt-j"
+
+[external.vd-jsonl]
+command = "vd --filetype jsonl"
+jq_flags = ["-c"]
+key = "alt-J"
+
+[external.vd-csv]
+command = "vd --filetype csv"
+key = "alt-v"
+
+[external.pager]
+command = "less"
+jq_flags = ["-c"]
+key = "alt-l"
+
+[external.bat]
+command = "bat --language json --paging always"
+key = "alt-L"

@@ -56,12 +56,15 @@ pub fn run() -> Result<(), Error> {
     let config = if opt.clean {
         Config::default()
     } else {
-        let config_path = directories::ProjectDirs::from("", "", "jq-repl")
-            .map(|dirs| dirs.config_dir().join("config.toml"));
+        let config_path = opt.config.clone().or_else(|| {
+            directories::ProjectDirs::from("", "", "jq-repl")
+                .map(|dirs| dirs.config_dir().join("config.toml"))
+        });
 
-        match config_path {
-            Some(path) => Config::load(&path)?.unwrap_or_default(),
-            None => Config::default(),
+        if let Some(path) = config_path {
+            Config::load(&path)?.unwrap_or_default()
+        } else {
+            Config::default()
         }
     };
 
@@ -155,12 +158,6 @@ fn print_verbose_versions(opt: &Opt) -> Result<(), Error> {
     println!();
     print_cmd_version(&opt.fzf_bin, "--version")?;
     print_cmd_version(&opt.jq_bin, "--version")?;
-    print_cmd_version("bat", "--version")?;
-    print_cmd_version("vd", "--version")?;
-    print_cmd_version(&opt.braille_bin, "--version")?;
-    print_cmd_version(&opt.editor, "--version")?;
-    print_cmd_version(&opt.pager, "--version")?;
-    print_cmd_version("hxselect", "-v")?;
 
     let print_builtin_command = |cmd: &str| {
         println!(
