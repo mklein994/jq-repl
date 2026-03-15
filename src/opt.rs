@@ -157,6 +157,7 @@ pub struct Opt {
     )]
     pub no_color_flag: String,
 
+    /// The flag passed to jq inside fzf to read input as raw strings
     #[arg(
         long,
         allow_hyphen_values = true,
