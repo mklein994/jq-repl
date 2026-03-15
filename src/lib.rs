@@ -271,7 +271,6 @@ pub fn build_fzf_cmd(
         "--preview-window=up,99%,border-bottom",
         "--no-separator",
         "--info=hidden",
-        "--header-first",
         "--query=.",
     ])
     .arg("--preview-label-pos=-1");

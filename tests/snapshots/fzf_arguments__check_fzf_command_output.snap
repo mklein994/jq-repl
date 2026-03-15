@@ -9,7 +9,6 @@ fzf \
 $'--preview-window=up,99%,border-bottom' \
 --no-separator \
 $'--info=hidden' \
---header-first \
 $'--query=.' \
 $'--preview-label-pos=-1' \
 $'--history=/tmp/jq_repl_history' \
