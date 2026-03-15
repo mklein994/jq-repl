@@ -157,15 +157,6 @@ pub struct Opt {
     )]
     pub no_color_flag: String,
 
-    /// The flag passed to jq inside fzf to use a compact format
-    #[arg(
-        long,
-        allow_hyphen_values = true,
-        default_value = "-c",
-        default_value_if("clean", ArgPredicate::IsPresent, "")
-    )]
-    pub compact_flag: String,
-
     #[arg(
         long,
         allow_hyphen_values = true,

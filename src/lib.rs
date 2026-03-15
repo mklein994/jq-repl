@@ -220,19 +220,6 @@ pub fn bash_quote_join<T: AsRef<std::ffi::OsStr>>(args: impl IntoIterator<Item =
         .join(" ")
 }
 
-/// Convert an fzf key string to a compact human-readable hint.
-///
-/// Examples: `"alt-e"` → `"M-e"`, `"ctrl-space"` → `"^space"`, `"pgup"` → `"pgup"`.
-fn key_hint(key: &str) -> String {
-    if let Some(k) = key.strip_prefix("alt-") {
-        format!("M-{k}")
-    } else if let Some(k) = key.strip_prefix("ctrl-") {
-        format!("^{k}")
-    } else {
-        key.to_string()
-    }
-}
-
 #[derive(Debug)]
 pub enum InputFile<'a> {
     Stdin(NamedTempFile),
@@ -279,17 +266,6 @@ pub fn build_fzf_cmd(
     }
 
     // Setup layout and style
-    let header = {
-        let mut hints: Vec<String> = Vec::new();
-        for (name, lens) in &config.lens {
-            hints.push(format!("{}: {name}", key_hint(&lens.key)));
-        }
-        for (name, external) in &config.external {
-            hints.push(format!("{}: {name}", key_hint(&external.key)));
-        }
-        hints.join(" \u{2044} ")
-    };
-
     fzf.args([
         "--disabled",
         "--preview-window=up,99%,border-bottom",
@@ -297,7 +273,6 @@ pub fn build_fzf_cmd(
         "--info=hidden",
         "--header-first",
         "--query=.",
-        &format!("--header={header}"),
     ])
     .arg("--preview-label-pos=-1");
 
