@@ -1,0 +1,55 @@
+# jq-repl configuration
+# Copy to $XDG_CONFIG_HOME/jq-repl/config.toml (typically ~/.config/jq-repl/config.toml)
+
+# Currently only reset_lens is configurable here.
+# General fzf keybindings can be passed via --fzf-args.
+[keybinds]
+# reset_lens = "alt-G"  # default
+
+# Lenses pipe jq output through a command for alternative display.
+# Color is suppressed on the jq side; the command handles its own coloring.
+# The table key becomes the label shown in the prompt (e.g. "gron> ").
+
+[lens.gron]
+command = "gron --colorize"
+key = "ctrl-space"
+
+[lens.braille]
+# Environment variables can be set inline
+command = "BRAILLE_USE_FULL_DEFAULT_HEIGHT=1 braille --modeline"
+key = "alt-g"
+
+# External tools receive jq output and open it in another program.
+# jq_flags are passed to jq before piping (e.g. "-c" for compact output).
+
+[external.editor]
+# Arguments containing spaces or special characters must be quoted
+command = "nvim -c 'set ft=json' -"
+key = "alt-e"
+
+[external.editor-compact]
+command = "nvim -c 'set ft=json' -"
+jq_flags = ["-c"]
+key = "alt-E"
+
+[external.vd-json]
+command = "vd --filetype json"
+key = "alt-j"
+
+[external.vd-jsonl]
+command = "vd --filetype jsonl"
+jq_flags = ["-c"]
+key = "alt-J"
+
+[external.vd-csv]
+command = "vd --filetype csv"
+key = "alt-v"
+
+[external.pager]
+command = "less"
+jq_flags = ["-c"]
+key = "alt-l"
+
+[external.bat]
+command = "bat --language json --paging always"
+key = "alt-L"
