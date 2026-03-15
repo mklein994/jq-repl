@@ -1,48 +1,15 @@
-use std::fmt;
+use thiserror::Error as ThisError;
 
-#[derive(Debug)]
+#[derive(Debug, ThisError)]
 pub enum Error {
-    Io(std::io::Error),
-    TmpPersist(tempfile::PersistError),
-    Utf8(std::string::FromUtf8Error),
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    #[error(transparent)]
+    TmpPersist(#[from] tempfile::PersistError),
+    #[error(transparent)]
+    Utf8(#[from] std::string::FromUtf8Error),
+    #[error("{0}")]
     Fzf(std::process::ExitStatus),
-    Clap(clap::Error),
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Io(err) => err.fmt(f),
-            Self::TmpPersist(err) => err.fmt(f),
-            Self::Utf8(err) => err.fmt(f),
-            Self::Fzf(err) => write!(f, "{err}"),
-            Self::Clap(err) => err.fmt(f),
-        }
-    }
-}
-
-impl std::error::Error for Error {}
-
-impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Self {
-        Self::Io(err)
-    }
-}
-
-impl From<tempfile::PersistError> for Error {
-    fn from(err: tempfile::PersistError) -> Self {
-        Self::TmpPersist(err)
-    }
-}
-
-impl From<std::string::FromUtf8Error> for Error {
-    fn from(err: std::string::FromUtf8Error) -> Self {
-        Self::Utf8(err)
-    }
-}
-
-impl From<clap::Error> for Error {
-    fn from(err: clap::Error) -> Self {
-        Self::Clap(err)
-    }
+    #[error(transparent)]
+    Clap(#[from] clap::Error),
 }
