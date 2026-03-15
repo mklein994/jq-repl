@@ -10,7 +10,7 @@ fn check_fzf_command_output() {
         .arg("/tmp/jq_repl_history")
         .arg("--show-fzf-command")
         .arg("-n")
-        .arg("./tests/foo.json")
+        .arg("./tests/foo bar.json")
         .stdin(Stdio::inherit())
         .output()
         .unwrap();
