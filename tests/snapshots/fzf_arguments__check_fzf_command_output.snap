@@ -17,6 +17,7 @@ $'--preview=gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -C {q} $\'./tes
 $'--bind=change:transform-preview-label:printf "%s" {q} | _jq-repl-charcounter ' \
 $'--bind=tab:transform-query:echo {q} | _jq-repl-tab-completion' \
 $'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:toggle-preview-wrap,alt-W:toggle-preview-wrap-word,home:preview-top,end:preview-bottom' \
+$'--bind=alt-h:change-preview-window(~1,up,99%,border-bottom|~2,up,99%,border-bottom|~3,up,99%,border-bottom|up,99%,border-bottom)' \
 $'--bind=alt-c:bg-transform:_jq-repl-transform -f +c -- $\'./tests/foo bar.json\'' \
 $'--bind=alt-C:bg-transform:_jq-repl-transform -f -c -- $\'./tests/foo bar.json\'' \
 $'--bind=alt-g:bg-transform:_jq-repl-transform -p braille -- $\'./tests/foo bar.json\'' \

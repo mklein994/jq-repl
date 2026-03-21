@@ -265,10 +265,12 @@ pub fn build_fzf_cmd(
         );
     }
 
+    let default_preview_window = "up,99%,border-bottom";
+
     // Setup layout and style
     fzf.args([
         "--disabled",
-        "--preview-window=up,99%,border-bottom",
+        &format!("--preview-window={default_preview_window}"),
         "--no-separator",
         "--info=hidden",
         "--query=.",
@@ -332,6 +334,8 @@ pub fn build_fzf_cmd(
         .join(","),
     ));
 
+    add_freeze_headers_binding(&mut fzf, default_preview_window, "alt-h", &[1, 2, 3, 0]);
+
     let transform_bin = &opt.transform_bin;
 
     // Change jq flags at runtime
@@ -379,6 +383,26 @@ pub fn build_fzf_cmd(
     fzf.stdin(Stdio::null()).stdout(Stdio::inherit());
 
     Ok(fzf)
+}
+
+fn add_freeze_headers_binding(
+    fzf: &mut Command,
+    default_preview_window: &str,
+    binding: &str,
+    lines_frozen: &[u32],
+) {
+    let mut layouts = vec![];
+    for line in lines_frozen {
+        if *line == 0 {
+            layouts.push(default_preview_window.to_string());
+        } else {
+            layouts.push(format!("~{line},{default_preview_window}"));
+        }
+    }
+    fzf.arg(format!(
+        "--bind={binding}:change-preview-window({})",
+        layouts.join("|")
+    ));
 }
 
 fn add_external_bindings(
