@@ -84,7 +84,7 @@ pub struct Opt {
     /// Path to the config file
     ///
     /// Defaults to `$XDG_CONFIG_HOME/jq-repl/config.toml`.
-    #[arg(long, value_hint = ValueHint::FilePath)]
+    #[arg(long, env = "JQ_REPL_CONFIG", value_hint = ValueHint::FilePath)]
     pub config: Option<PathBuf>,
 
     /// Use `null` as input value
