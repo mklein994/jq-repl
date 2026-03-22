@@ -310,7 +310,7 @@ pub fn build_fzf_cmd(
     ));
 
     fzf.arg(format!(
-        "--bind=change:transform-preview-label:printf \"%s\" {{q}} | {} {}",
+        "--bind=change:bg-transform-preview-label:printf \"%s\" {{q}} | {} {}",
         bash_quote(&opt.charcounter_bin),
         &opt.charcounter_options.join(" "),
     ))
