@@ -5,6 +5,7 @@
 # General fzf keybindings can be passed via --fzf-args.
 [keybinds]
 # reset_lens = "alt-G"  # default
+# cycle_frozen_headers = "alt-h"  # default
 
 # Lenses pipe jq output through a command for alternative display.
 # Color is suppressed on the jq side; the command handles its own coloring.

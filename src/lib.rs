@@ -344,7 +344,12 @@ pub fn build_fzf_cmd(
         .join(","),
     ));
 
-    add_freeze_headers_binding(&mut fzf, default_preview_window, "alt-h", &[1, 2, 3, 0]);
+    add_freeze_headers_binding(
+        &mut fzf,
+        default_preview_window,
+        &config.keybinds.cycle_frozen_headers,
+        &[1, 2, 3, 0],
+    );
 
     let transform_bin = &opt.transform_bin;
 

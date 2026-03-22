@@ -19,12 +19,16 @@ pub struct Config {
 pub struct Keybinds {
     /// Keybinding to remove a lens view
     pub reset_lens: String,
+
+    /// Keybinding to cycle through how many lines in the preview window are frozen
+    pub cycle_frozen_headers: String,
 }
 
 impl Default for Keybinds {
     fn default() -> Self {
         Self {
             reset_lens: "alt-G".to_string(),
+            cycle_frozen_headers: "alt-h".to_string(),
         }
     }
 }
