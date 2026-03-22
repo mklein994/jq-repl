@@ -62,19 +62,7 @@ pub fn run() -> Result<(), Error> {
         Config::load(&config_path)?.unwrap_or_default()
     };
 
-    let history_file = if opt.no_history {
-        None
-    } else if opt.history_file.is_some() {
-        opt.history_file.clone()
-    } else {
-        let path = project.data_dir().join("history");
-
-        if let Some(parent_dir) = path.parent() {
-            std::fs::create_dir_all(parent_dir)?;
-        }
-
-        Some(path)
-    };
+    let history_file = resolve_history_file(&opt, &project)?;
 
     let mut jq_args = opt.jq_args.clone();
     let null_input = opt.null_input || (std::io::stdin().is_terminal() && opt.files.is_empty());
@@ -234,6 +222,26 @@ impl std::fmt::Display for InputFile<'_> {
         };
 
         write!(f, "{}", bash_quote(path))
+    }
+}
+
+/// Determine what the path to the history file from the options and project directories.
+///
+/// If the default XDG path is used, parent directories up to the file path are created if they
+/// don't exist.
+fn resolve_history_file(opt: &Opt, project: &ProjectDirs) -> Result<Option<PathBuf>, Error> {
+    if opt.no_history {
+        Ok(None)
+    } else if opt.history_file.is_some() {
+        Ok(opt.history_file.clone())
+    } else {
+        let path = project.data_dir().join("history");
+
+        if let Some(parent_dir) = path.parent() {
+            std::fs::create_dir_all(parent_dir)?;
+        }
+
+        Ok(Some(path))
     }
 }
 
