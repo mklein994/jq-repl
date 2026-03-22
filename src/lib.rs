@@ -64,14 +64,14 @@ pub fn run() -> Result<(), Error> {
 
     let history_file = resolve_history_file(&opt, &project)?;
 
-    let mut jq_args = opt.jq_args.clone();
+    let mut resolved_jq_args = opt.jq_args.clone();
     let null_input = opt.null_input || (std::io::stdin().is_terminal() && opt.files.is_empty());
     if null_input {
-        jq_args.push(opt.null_input_flag.clone());
+        resolved_jq_args.push(opt.null_input_flag.clone());
     }
 
     if opt.raw_input {
-        jq_args.push(opt.raw_input_flag.clone());
+        resolved_jq_args.push(opt.raw_input_flag.clone());
     }
 
     let files = get_files(&opt.files)?;
@@ -99,7 +99,7 @@ pub fn run() -> Result<(), Error> {
         &opt,
         &config,
         null_input,
-        &jq_args,
+        &resolved_jq_args,
         history_file.as_deref(),
         &input_file_paths,
     )?;
@@ -349,19 +349,20 @@ pub fn build_fzf_cmd(
     let transform_bin = &opt.transform_bin;
 
     // Change jq flags at runtime
-    let runtime_flag_toggle = |fzf: &mut Command, flag, toggle_on_binding, toggle_off_binding| {
-        fzf.args([
-            format!(
-                "--bind={toggle_on_binding}:bg-transform:{transform_bin} -f +{flag} -- \
-                 {input_file_paths}"
-            ),
-            format!(
-                "--bind={toggle_off_binding}:bg-transform:{transform_bin} -f -{flag} -- \
-                 {input_file_paths}"
-            ),
-        ]);
-    };
-    runtime_flag_toggle(&mut fzf, 'c', "alt-c", "alt-C");
+    let add_runtime_flag_toggle =
+        |fzf: &mut Command, flag, toggle_on_binding, toggle_off_binding| {
+            fzf.args([
+                format!(
+                    "--bind={toggle_on_binding}:bg-transform:{transform_bin} -f +{flag} -- \
+                     {input_file_paths}"
+                ),
+                format!(
+                    "--bind={toggle_off_binding}:bg-transform:{transform_bin} -f -{flag} -- \
+                     {input_file_paths}"
+                ),
+            ]);
+        };
+    add_runtime_flag_toggle(&mut fzf, 'c', "alt-c", "alt-C");
 
     // Add a binding per configured lens to activate it
     for (name, lens) in &config.lens {
