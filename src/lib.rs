@@ -5,6 +5,7 @@ mod prompt;
 pub mod transform;
 
 use clap::Parser;
+use directories::ProjectDirs;
 pub use error::Error;
 use opt::Opt;
 pub use prompt::Prompt;
@@ -53,28 +54,21 @@ pub fn run() -> Result<(), Error> {
         return Ok(());
     }
 
+    let project = ProjectDirs::from("", "", clap::crate_name!()).ok_or_else(|| Error::Project)?;
+
     let config = if opt.clean {
         Config::default()
     } else {
-        let config_path = opt.config.clone().or_else(|| {
-            directories::ProjectDirs::from("", "", "jq-repl")
-                .map(|dirs| dirs.config_dir().join("config.toml"))
-        });
-
-        if let Some(path) = config_path {
-            Config::load(&path)?.unwrap_or_default()
-        } else {
-            Config::default()
-        }
+        let config_path = project.config_dir().join("config.toml");
+        Config::load(&config_path)?.unwrap_or_default()
     };
 
     let history_file = if opt.no_history {
         None
     } else {
-        opt.history_file.clone().or_else(|| {
-            directories::ProjectDirs::from("", "", "jq-repl")
-                .map(|dirs| dirs.data_dir().join("history"))
-        })
+        opt.history_file
+            .clone()
+            .or_else(|| Some(project.data_dir().join("history")))
     };
 
     // Ensure the history file's parent directory exists so fzf can write to it

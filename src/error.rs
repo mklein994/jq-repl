@@ -19,4 +19,7 @@ pub enum Error {
 
     #[error(transparent)]
     Config(#[from] crate::config::ConfigError),
+
+    #[error("unknown home directory path")]
+    Project,
 }
