@@ -58,7 +58,10 @@ pub fn run() -> Result<(), Error> {
     let config = if opt.clean {
         Config::default()
     } else {
-        let config_path = project.config_dir().join("config.toml");
+        let config_path = opt
+            .config
+            .clone()
+            .unwrap_or_else(|| project.config_dir().join("config.toml"));
         Config::load(&config_path)?.unwrap_or_default()
     };
 
