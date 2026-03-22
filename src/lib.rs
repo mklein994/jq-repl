@@ -287,8 +287,7 @@ pub fn build_fzf_cmd(
         "--no-separator",
         "--info=hidden",
         "--query=.",
-    ])
-    .arg("--preview-label-pos=-1");
+    ]);
 
     if let Some(path) = history_file {
         fzf.arg(format!("--history={}", path.display()));
@@ -309,20 +308,28 @@ pub fn build_fzf_cmd(
         &opt.color_flag
     ));
 
+    // Setup an indicator that shows when approaching the query limit
+    fzf.args([
+        &format!(
+            "--bind=change:bg-transform-preview-label:printf \"%s\" {{q}} | {} {}",
+            bash_quote(&opt.charcounter_bin),
+            &opt.charcounter_options.join(" "),
+        ),
+        "--preview-label-pos=-1", // Right-aligned
+    ]);
+
+    // Setup tab completion
+    //
+    // This is done synchronously since it's affecting user input.
     fzf.arg(format!(
-        "--bind=change:bg-transform-preview-label:printf \"%s\" {{q}} | {} {}",
-        bash_quote(&opt.charcounter_bin),
-        &opt.charcounter_options.join(" "),
-    ))
-    .arg(format!(
         "--bind=tab:transform-query:echo {{q}} | {}",
         bash_quote(&opt.completion_bin)
     ));
 
     // Simple readline-like key bindings that make life easier
     //
-    // Fzf has a lot of readline bindings builtin, but we need to adjust it for jq-repl, which
-    // heavily uses the preview pane, not the results list.
+    // Fzf has a lot of readline bindings builtin, but we need to adjust it, since we heavily
+    // uses the preview pane, not the results list.
     fzf.arg(format!(
         "--bind={}",
         [
