@@ -18,7 +18,7 @@ use tempfile::NamedTempFile;
 
 pub use config::Config;
 
-fn get_jq_arg_prefix(opt: &Opt) -> String {
+fn get_jq_arg_prefix(opt: &Opt, jq_args: &[String]) -> String {
     let mut prefix = if !opt.clean && opt.use_default_args {
         let default_lib_dir = &opt.jq_repl_lib; // setup the module path
         let default_lib_prelude = default_lib_dir.join(".jq"); // import all modules
@@ -32,16 +32,16 @@ fn get_jq_arg_prefix(opt: &Opt) -> String {
         String::new()
     };
 
-    if !opt.jq_args.is_empty() {
+    if !jq_args.is_empty() {
         prefix.push(' ');
-        prefix.push_str(&opt.jq_args.join(" "));
+        prefix.push_str(&jq_args.join(" "));
     }
 
     prefix
 }
 
 pub fn run() -> Result<(), Error> {
-    let mut opt = Opt::parse();
+    let opt = Opt::parse();
 
     if opt.version_verbose {
         print_verbose_versions(&opt)?;
@@ -77,13 +77,14 @@ pub fn run() -> Result<(), Error> {
         Some(path)
     };
 
-    opt.null_input = opt.null_input || (std::io::stdin().is_terminal() && opt.files.is_empty());
-    if opt.null_input {
-        opt.jq_args.push(opt.null_input_flag.clone());
+    let mut jq_args = opt.jq_args.clone();
+    let null_input = opt.null_input || (std::io::stdin().is_terminal() && opt.files.is_empty());
+    if null_input {
+        jq_args.push(opt.null_input_flag.clone());
     }
 
     if opt.raw_input {
-        opt.jq_args.push(opt.raw_input_flag.clone());
+        jq_args.push(opt.raw_input_flag.clone());
     }
 
     let files = get_files(&opt.files)?;
@@ -107,7 +108,14 @@ pub fn run() -> Result<(), Error> {
     };
 
     // Keep a reference to the temp file alive until we quit
-    let mut fzf_cmd = build_fzf_cmd(&opt, &config, history_file.as_deref(), &input_file_paths)?;
+    let mut fzf_cmd = build_fzf_cmd(
+        &opt,
+        &config,
+        null_input,
+        &jq_args,
+        history_file.as_deref(),
+        &input_file_paths,
+    )?;
 
     if opt.show_fzf_command {
         print_fzf_command(&fzf_cmd);
@@ -233,12 +241,14 @@ impl std::fmt::Display for InputFile<'_> {
 pub fn build_fzf_cmd(
     opt: &Opt,
     config: &Config,
+    null_input: bool,
+    jq_args: &[String],
     history_file: Option<&Path>,
     input_file_paths: &str,
 ) -> Result<Command, Error> {
     let jq_bin = &opt.jq_bin;
 
-    let jq_arg_prefix = get_jq_arg_prefix(opt);
+    let jq_arg_prefix = get_jq_arg_prefix(opt, jq_args);
 
     let mut fzf = Command::new(&opt.fzf_bin);
 
@@ -281,7 +291,7 @@ pub fn build_fzf_cmd(
     // pressed. As a consequence, the format should be kept consistent between the two.
     fzf.arg(format!(
         "--prompt={}",
-        Prompt::new(opt.raw_input, opt.null_input)
+        Prompt::new(opt.raw_input, null_input)
     ));
 
     fzf.arg(format!(
