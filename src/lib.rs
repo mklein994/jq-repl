@@ -65,18 +65,17 @@ pub fn run() -> Result<(), Error> {
 
     let history_file = if opt.no_history {
         None
+    } else if opt.history_file.is_some() {
+        opt.history_file.clone()
     } else {
-        opt.history_file
-            .clone()
-            .or_else(|| Some(project.data_dir().join("history")))
-    };
+        let path = project.data_dir().join("history");
 
-    // Ensure the history file's parent directory exists so fzf can write to it
-    if let Some(ref path) = history_file
-        && let Some(parent) = path.parent()
-    {
-        std::fs::create_dir_all(parent)?;
-    }
+        if let Some(parent_dir) = path.parent() {
+            std::fs::create_dir_all(parent_dir)?;
+        }
+
+        Some(path)
+    };
 
     opt.null_input = opt.null_input || (std::io::stdin().is_terminal() && opt.files.is_empty());
     if opt.null_input {
