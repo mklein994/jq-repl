@@ -1,8 +1,9 @@
+use serde::Deserialize;
 use std::collections::BTreeMap;
 use std::path::Path;
 
 /// Top-level configuration, deserialized from `config.toml`.
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
     pub keybinds: Keybinds,
@@ -11,9 +12,12 @@ pub struct Config {
 }
 
 /// Global key bindings not tied to a specific lens or external tool.
-#[derive(Debug, serde::Deserialize)]
+///
+/// They follow fzf's syntax for keybindings, see `fzf(1)`.
+#[derive(Debug, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Keybinds {
+    /// Keybinding to remove a lens view
     pub reset_lens: String,
 }
 
@@ -29,7 +33,7 @@ impl Default for Keybinds {
 ///
 /// Color is always suppressed on the jq side before piping, since the command is expected to handle
 /// its own coloring.
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Lens {
     pub command: String,
@@ -37,7 +41,7 @@ pub struct Lens {
 }
 
 /// An external tool: opens jq output in another program.
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct External {
     pub command: String,
@@ -64,6 +68,7 @@ impl Config {
 pub enum ConfigError {
     #[error("failed to read config file: {0}")]
     Io(#[from] std::io::Error),
+
     #[error("failed to parse config file: {0}")]
     Parse(#[from] toml::de::Error),
 }
