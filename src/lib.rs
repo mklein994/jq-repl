@@ -5,6 +5,7 @@ mod prompt;
 pub mod transform;
 
 use clap::Parser;
+pub use config::Config;
 use directories::ProjectDirs;
 pub use error::Error;
 use opt::Opt;
@@ -15,8 +16,6 @@ use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tempfile::NamedTempFile;
-
-pub use config::Config;
 
 fn get_jq_arg_prefix(opt: &Opt, jq_args: &[String]) -> String {
     let mut prefix = if !opt.clean && opt.use_default_args {
