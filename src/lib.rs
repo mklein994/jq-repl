@@ -361,23 +361,16 @@ pub fn build_fzf_cmd(
         &[1, 2, 3, 0],
     );
 
-    let transform_bin = &opt.transform_bin;
+    add_runtime_flag_toggle(
+        &mut fzf,
+        &opt.transform_bin,
+        'c',
+        "alt-c",
+        "alt-C",
+        input_file_paths,
+    );
 
-    // Change jq flags at runtime
-    let add_runtime_flag_toggle =
-        |fzf: &mut Command, flag, toggle_on_binding, toggle_off_binding| {
-            fzf.args([
-                format!(
-                    "--bind={toggle_on_binding}:bg-transform:{transform_bin} -f +{flag} -- \
-                     {input_file_paths}"
-                ),
-                format!(
-                    "--bind={toggle_off_binding}:bg-transform:{transform_bin} -f -{flag} -- \
-                     {input_file_paths}"
-                ),
-            ]);
-        };
-    add_runtime_flag_toggle(&mut fzf, 'c', "alt-c", "alt-C");
+    let transform_bin = &opt.transform_bin;
 
     // Add a binding per configured lens to activate it
     for (name, lens) in &config.lens {
@@ -429,6 +422,26 @@ fn add_freeze_headers_binding(
         "--bind={binding}:change-preview-window({})",
         layouts.join("|")
     ));
+}
+
+fn add_runtime_flag_toggle(
+    fzf: &mut Command,
+    transform_bin: &str,
+    flag: char,
+    toggle_on_binding: &str,
+    toggle_off_binding: &str,
+    input_file_paths: &str,
+) {
+    fzf.args([
+        format!(
+            "--bind={toggle_on_binding}:bg-transform:{transform_bin} -f +{flag} -- \
+             {input_file_paths}"
+        ),
+        format!(
+            "--bind={toggle_off_binding}:bg-transform:{transform_bin} -f -{flag} -- \
+             {input_file_paths}"
+        ),
+    ]);
 }
 
 fn add_external_bindings(
