@@ -8,6 +8,7 @@ fn check_fzf_command_output() {
         .env_remove("JQ_REPL_TRANSFORM_BIN")
         .env_remove("JQ_REPL_CHARCOUNTER_BIN")
         .env_remove("JQ_REPL_COMPLETION_BIN")
+        .env_remove("JQ_REPL_MENU_BIN")
         // Settings
         .env_remove("JQ_REPL_HISTORY")
         .env_remove("JQ_REPL_LIB")

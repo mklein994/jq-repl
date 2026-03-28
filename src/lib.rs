@@ -14,9 +14,11 @@ pub use prompt::Prompt;
 use shell_quote::{Bash, Quote};
 use std::fs::File;
 use std::io::IsTerminal;
+use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use tempfile::NamedTempFile;
+use tabwriter::TabWriter;
+use tempfile::{NamedTempFile, TempPath};
 
 fn get_jq_arg_prefix(opt: &Opt, jq_args: &[String]) -> String {
     let mut prefix = if !opt.clean && opt.use_default_args {
@@ -66,6 +68,10 @@ pub fn run() -> Result<(), Error> {
         Config::load(&config_path)?.unwrap_or_default()
     };
 
+    let menu_state_path = resolve_menu_state_path(&opt)?;
+    let menu_path = resolve_menu_path(&opt)?;
+    write_menu_contents(&menu_path, &config)?;
+
     let history_file = resolve_history_file(&opt, &project)?;
 
     let mut resolved_jq_args = opt.jq_args.clone();
@@ -104,6 +110,8 @@ pub fn run() -> Result<(), Error> {
         &config,
         null_input,
         &resolved_jq_args,
+        &menu_state_path,
+        &menu_path,
         history_file.as_deref(),
         &input_file_paths,
     )?;
@@ -229,6 +237,29 @@ impl std::fmt::Display for InputFile<'_> {
     }
 }
 
+fn resolve_menu_state_path(opt: &Opt) -> Result<TempPath, Error> {
+    if let Some(path) = &opt.state_path {
+        Ok(TempPath::try_from_path(path)?)
+    } else {
+        Ok(tempfile::Builder::new()
+            .prefix("jq_repl_state.")
+            .suffix(".json")
+            .tempfile()?
+            .into_temp_path())
+    }
+}
+
+fn resolve_menu_path(opt: &Opt) -> Result<TempPath, Error> {
+    if let Some(path) = &opt.menu_path {
+        Ok(TempPath::try_from_path(path)?)
+    } else {
+        Ok(tempfile::Builder::new()
+            .prefix("jq_repl_menu.")
+            .tempfile()?
+            .into_temp_path())
+    }
+}
+
 /// Determine what the path to the history file from the options and project directories.
 ///
 /// If the default XDG path is used, parent directories up to the file path are created if they
@@ -254,6 +285,8 @@ pub fn build_fzf_cmd(
     config: &Config,
     null_input: bool,
     jq_args: &[String],
+    state_path: &Path,
+    menu_path: &Path,
     history_file: Option<&Path>,
     input_file_paths: &str,
 ) -> Result<Command, Error> {
@@ -263,12 +296,31 @@ pub fn build_fzf_cmd(
 
     let mut fzf = Command::new(&opt.fzf_bin);
 
+    let default_preview_window = "up,99%,border-bottom";
+
+    let keys_to_unbind = vec![
+        config.keybinds.reset_lens.as_str(),
+        config.keybinds.cycle_frozen_headers.as_str(),
+        "alt-c",
+        "alt-C",
+        "tab",
+    ]
+    .into_iter()
+    .chain(config.external.values().map(|x| x.key.as_str()))
+    .chain(config.lens.values().map(|x| x.key.as_str()))
+    .collect::<Vec<_>>();
+
     // Add some jq-repl environment variables so they can be referenced from within
     fzf.env("JQ_REPL_VERSION", clap::crate_version!())
         .env("JQ_REPL_JQ_BIN", &opt.jq_bin)
         .env("JQ_REPL_JQ_ARG_PREFIX", &jq_arg_prefix)
         .env("JQ_REPL_COLOR_FLAG", &opt.color_flag)
-        .env("JQ_REPL_NO_COLOR_FLAG", &opt.no_color_flag);
+        .env("JQ_REPL_NO_COLOR_FLAG", &opt.no_color_flag)
+        .env("JQ_REPL_PREVIEW_WINDOW", default_preview_window)
+        .env("JQ_REPL_MENU_PATH", menu_path)
+        .env("JQ_REPL_STATE_PATH", state_path)
+        .env("JQ_REPL_MENU_KEYS_TO_UNBIND", keys_to_unbind.join(","))
+        .env("JQ_REPL_INPUT_FILE_PATHS", input_file_paths);
 
     // Pass lens commands as env vars so _jq-repl-transform can build the preview command.
     // Each lens is exposed as JQ_REPL_LENS_<NAME> (uppercased).
@@ -278,8 +330,6 @@ pub fn build_fzf_cmd(
             &lens.command,
         );
     }
-
-    let default_preview_window = "up,99%,border-bottom";
 
     // Setup layout and style
     fzf.args([
@@ -325,6 +375,11 @@ pub fn build_fzf_cmd(
     fzf.arg(format!(
         "--bind=tab:transform-query:echo {{q}} | {}",
         bash_quote(&opt.completion_bin)
+    ));
+
+    fzf.arg(format!(
+        "--bind=alt-/:transform:{menu_bin}",
+        menu_bin = bash_quote(&opt.menu_bin)
     ));
 
     // Simple readline-like key bindings that make life easier
@@ -443,6 +498,36 @@ fn add_runtime_flag_toggle(
              {input_file_paths}"
         ),
     ]);
+}
+
+fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
+    let menu = config
+        .lens
+        .iter()
+        .map(|(key, lens)| {
+            (
+                "lens",
+                key.as_str(),
+                lens.key.as_str(),
+                lens.command.as_str(),
+            )
+        })
+        .chain(config.external.iter().map(|(key, external)| {
+            (
+                "external",
+                key.as_str(),
+                external.key.as_str(),
+                external.command.as_str(),
+            )
+        }))
+        .map(|x| <[_; _]>::from(x).join("\t"));
+
+    let mut file = File::create(path)?;
+    let mut writer = TabWriter::new(&mut file);
+    write!(&mut writer, "{}", menu.collect::<Vec<_>>().join("\n"))?;
+    writer.flush()?;
+
+    Ok(())
 }
 
 fn add_external_bindings(

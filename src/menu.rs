@@ -4,10 +4,12 @@ use std::path::Path;
 /// The mutable fzf state that the menu saves on open and restores on close.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MenuState {
+    pub key_bindings: String,
     pub prompt: String,
     pub query: String,
-    /// The fully-assembled jq preview command, with the query embedded (i.e. frozen).
     pub preview: String,
+    /// The fully-assembled jq preview command, with the query embedded (i.e. frozen).
+    pub frozen_preview: String,
     pub preview_window: String,
 }
 
@@ -36,10 +38,12 @@ pub fn open_actions(state: &MenuState, menu_path: &Path) -> String {
     let menu_path = crate::bash_quote(menu_path);
     [
         "change-prompt([menu]> )".to_string(),
-        format!("change-preview({})", state.preview),
-        format!("change-preview-window({})", state.preview_window),
+        format!("unbind({})", state.key_bindings),
+        format!("change-preview({})", state.frozen_preview),
+        "change-preview-window(up,75%,border-bottom)".to_string(),
         format!("reload(cat {menu_path})"),
         "change-query()".to_string(),
+        "enable-search".to_string(),
     ]
     .join("+")
 }
@@ -50,11 +54,13 @@ pub fn open_actions(state: &MenuState, menu_path: &Path) -> String {
 #[must_use]
 pub fn close_actions(state: &MenuState) -> String {
     [
+        format!("rebind({})", state.key_bindings),
+        "disable-search".to_string(),
         format!("change-prompt({})", state.prompt),
+        format!("change-query({})", state.query),
         format!("change-preview({})", state.preview),
         format!("change-preview-window({})", state.preview_window),
         "reload()".to_string(),
-        format!("change-query({})", state.query),
     ]
     .join("+")
 }

@@ -65,6 +65,29 @@ pub struct Opt {
     )]
     pub transform_bin: String,
 
+    /// Path to a program for managing the menu state
+    #[arg(
+        long,
+        env = "JQ_REPL_MENU_BIN",
+        default_value = "_jq-repl-menu",
+        value_hint = ValueHint::CommandName,
+    )]
+    pub menu_bin: String,
+
+    #[arg(
+        long,
+        env = "JQ_REPL_MENU_PATH",
+        value_hint = ValueHint::FilePath,
+    )]
+    pub menu_path: Option<PathBuf>,
+
+    #[arg(
+        long,
+        env = "JQ_REPL_STATE_PATH",
+        value_hint = ValueHint::FilePath,
+    )]
+    pub state_path: Option<PathBuf>,
+
     /// Path to the history file (use ^P and ^N to navigate it)
     ///
     /// History is only recorded when query is accepted (enter is pressed).

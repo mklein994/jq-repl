@@ -1,5 +1,6 @@
 use clap::Parser;
-use jq_repl::menu::{MenuState, close_actions, open_actions};
+use jq_repl::Prompt;
+use jq_repl::menu::{self, MenuState};
 use std::path::PathBuf;
 
 /// Open or close the jq-repl menu, emitting fzf transform actions.
@@ -34,17 +35,18 @@ struct MenuOpts {
     query: String,
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn run() -> Result<(), Box<dyn std::error::Error>> {
     let opts = MenuOpts::parse();
 
-    let state_path = PathBuf::from(std::env::var("JQ_REPL_MENU_STATE_FILE")?);
-    let menu_path = PathBuf::from(std::env::var("JQ_REPL_MENU_FILE")?);
+    let state_path = PathBuf::from(std::env::var("JQ_REPL_STATE_PATH")?);
+    let menu_path = PathBuf::from(std::env::var("JQ_REPL_MENU_PATH")?);
+    let keys_to_unbind = std::env::var("JQ_REPL_MENU_KEYS_TO_UNBIND")?;
 
-    if state_path.exists() {
+    if opts.prompt.starts_with('[') {
         // Menu is open — close it and restore saved state
         let state = MenuState::load(&state_path)?;
         std::fs::remove_file(&state_path)?;
-        println!("{}", close_actions(&state));
+        println!("{}", menu::close_actions(&state));
     } else {
         // Menu is closed — open it and save current state
         let jq_bin = std::env::var("JQ_REPL_JQ_BIN")?;
@@ -54,36 +56,56 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let input_file_paths = std::env::var("JQ_REPL_INPUT_FILE_PATHS").unwrap_or_default();
 
         // Reconstruct the jq flags from the current prompt state
-        let prompt: jq_repl::Prompt = opts.prompt.parse().unwrap();
+        let prompt: Prompt = opts.prompt.parse().unwrap();
         let jq_flags = prompt.jq_flags();
 
         // Assemble the frozen preview command, embedding the query directly instead of {q}
         // so it doesn't update as the user types to filter the menu
-        let parts: Vec<&str> = [
+        let frozen_query = jq_repl::bash_quote(&opts.query);
+        let frozen_parts: Vec<&str> = [
             jq_arg_prefix.trim(),
             color_flag.as_str(),
             jq_flags.as_str(),
-            opts.query.as_str(),
+            &frozen_query,
             input_file_paths.trim(),
         ]
         .into_iter()
         .filter(|s| !s.is_empty())
         .collect();
+        let frozen_preview = format!("{jq_bin} {}", frozen_parts.join(" "));
 
+        let parts: Vec<&str> = [
+            jq_arg_prefix.trim(),
+            color_flag.as_str(),
+            jq_flags.as_str(),
+            "{q}",
+            input_file_paths.trim(),
+        ]
+        .into_iter()
+        .filter(|s| !s.is_empty())
+        .collect();
         let preview = format!("{jq_bin} {}", parts.join(" "));
 
         let state = MenuState {
+            key_bindings: keys_to_unbind,
             prompt: opts.prompt,
             query: opts.query,
+            frozen_preview,
             preview,
             preview_window,
         };
 
         state.save(&state_path)?;
-        println!("{}", open_actions(&state, &menu_path));
+        println!("{}", menu::open_actions(&state, &menu_path));
     }
 
     Ok(())
+}
+
+fn main() {
+    if let Err(err) = run() {
+        println!("change-header(ERROR)+change-preview(echo {err})");
+    }
 }
 
 #[cfg(test)]
