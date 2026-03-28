@@ -300,6 +300,7 @@ dependencies = [
  "directories",
  "insta",
  "serde",
+ "serde_json",
  "shell-quote",
  "tempfile",
  "thiserror",
