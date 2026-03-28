@@ -1,0 +1,97 @@
+use clap::Parser;
+use jq_repl::menu::{MenuState, close_actions, open_actions};
+use std::path::PathBuf;
+
+/// Open or close the jq-repl menu, emitting fzf transform actions.
+///
+/// When opening, captures the current fzf state (prompt, query, preview command, preview window)
+/// into a JSON state file, then emits actions to switch fzf into menu mode. When closing, reads
+/// the state file back and emits actions to restore the previous state.
+///
+/// Whether to open or close is determined by whether the state file exists: if it does, the menu
+/// is currently open and should be closed; if it doesn't, the menu should be opened.
+///
+/// Static configuration is read from environment variables set by `jq-repl` at startup:
+///
+/// | Name                       | Description                                              |
+/// |----------------------------+----------------------------------------------------------|
+/// | `JQ_REPL_JQ_BIN`           | jq binary name (e.g. "gojq")                            |
+/// | `JQ_REPL_JQ_ARG_PREFIX`    | static jq arguments (library paths, `--raw-output`, etc.)|
+/// | `JQ_REPL_COLOR_FLAG`       | flag to enable color (e.g. `-C`)                         |
+/// | `JQ_REPL_PREVIEW_WINDOW`   | the preview window spec (e.g. "up,99%,border-bottom")    |
+/// | `JQ_REPL_INPUT_FILE_PATHS` | shell-quoted input file paths                            |
+/// | `JQ_REPL_MENU_STATE_FILE`  | path to write/read the JSON state snapshot               |
+/// | `JQ_REPL_MENU_FILE`        | path to the file containing menu items (tab-delimited)   |
+#[derive(Debug, Parser)]
+#[command(name = "_jq-repl-menu", version, verbatim_doc_comment)]
+struct MenuOpts {
+    /// The current prompt string
+    #[arg(long, allow_hyphen_values = true, env = "FZF_PROMPT")]
+    prompt: String,
+
+    /// The current query string
+    #[arg(long, env = "FZF_QUERY")]
+    query: String,
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let opts = MenuOpts::parse();
+
+    let state_path = PathBuf::from(std::env::var("JQ_REPL_MENU_STATE_FILE")?);
+    let menu_path = PathBuf::from(std::env::var("JQ_REPL_MENU_FILE")?);
+
+    if state_path.exists() {
+        // Menu is open — close it and restore saved state
+        let state = MenuState::load(&state_path)?;
+        std::fs::remove_file(&state_path)?;
+        println!("{}", close_actions(&state));
+    } else {
+        // Menu is closed — open it and save current state
+        let jq_bin = std::env::var("JQ_REPL_JQ_BIN")?;
+        let jq_arg_prefix = std::env::var("JQ_REPL_JQ_ARG_PREFIX").unwrap_or_default();
+        let color_flag = std::env::var("JQ_REPL_COLOR_FLAG").unwrap_or_default();
+        let preview_window = std::env::var("JQ_REPL_PREVIEW_WINDOW").unwrap_or_default();
+        let input_file_paths = std::env::var("JQ_REPL_INPUT_FILE_PATHS").unwrap_or_default();
+
+        // Reconstruct the jq flags from the current prompt state
+        let prompt: jq_repl::Prompt = opts.prompt.parse().unwrap();
+        let jq_flags = prompt.jq_flags();
+
+        // Assemble the frozen preview command, embedding the query directly instead of {q}
+        // so it doesn't update as the user types to filter the menu
+        let parts: Vec<&str> = [
+            jq_arg_prefix.trim(),
+            color_flag.as_str(),
+            jq_flags.as_str(),
+            opts.query.as_str(),
+            input_file_paths.trim(),
+        ]
+        .into_iter()
+        .filter(|s| !s.is_empty())
+        .collect();
+
+        let preview = format!("{jq_bin} {}", parts.join(" "));
+
+        let state = MenuState {
+            prompt: opts.prompt,
+            query: opts.query,
+            preview,
+            preview_window,
+        };
+
+        state.save(&state_path)?;
+        println!("{}", open_actions(&state, &menu_path));
+    }
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn check_args() {
+        <MenuOpts as clap::CommandFactory>::command().debug_assert();
+    }
+}

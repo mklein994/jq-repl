@@ -22,4 +22,7 @@ pub enum Error {
 
     #[error("unknown home directory path")]
     Project,
+
+    #[error(transparent)]
+    Json(#[from] serde_json::Error),
 }

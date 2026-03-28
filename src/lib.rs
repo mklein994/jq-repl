@@ -1,5 +1,6 @@
 pub mod config;
 mod error;
+pub mod menu;
 mod opt;
 mod prompt;
 pub mod transform;
