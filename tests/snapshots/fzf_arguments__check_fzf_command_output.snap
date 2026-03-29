@@ -19,8 +19,8 @@ $'--bind=change:bg-transform-preview-label:printf "%s" {q} | _jq-repl-charcounte
 $'--preview-label-pos=-1' \
 $'--bind=tab:transform-query:echo {q} | _jq-repl-tab-completion' \
 $'--delimiter=\t' \
-$'--accept-nth=1' \
 $'--with-nth=2' \
+$'--bind=enter:transform:if [[ $FZF_PROMPT =~ ^\\[ ]]; then { _jq-repl-menu --accept={1}; } else echo accept; fi' \
 $'--bind=ctrl-g,esc:transform:[[ $FZF_PROMPT =~ ^\\[ ]] && _jq-repl-menu || echo abort' \
 $'--bind=alt-/:transform:_jq-repl-menu' \
 $'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:toggle-preview-wrap,alt-W:toggle-preview-wrap-word,home:preview-top,end:preview-bottom' \

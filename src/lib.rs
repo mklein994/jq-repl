@@ -320,7 +320,9 @@ pub fn build_fzf_cmd(
         .env("JQ_REPL_MENU_PATH", menu_path)
         .env("JQ_REPL_STATE_PATH", state_path)
         .env("JQ_REPL_MENU_KEYS_TO_UNBIND", keys_to_unbind.join(","))
-        .env("JQ_REPL_INPUT_FILE_PATHS", input_file_paths);
+        .env("JQ_REPL_TRANSFORM_BIN", &opt.transform_bin)
+        .env("JQ_REPL_INPUT_FILE_PATHS", input_file_paths)
+        .env("JQ_REPL_RESET_KEY", &config.keybinds.reset_lens);
 
     // Pass lens commands as env vars so _jq-repl-transform can build the preview command.
     // Each lens is exposed as JQ_REPL_LENS_<NAME> (uppercased).
@@ -386,8 +388,11 @@ pub fn build_fzf_cmd(
     let menu_bin = bash_quote(&opt.menu_bin);
     fzf.args([
         "--delimiter=\t".to_string(),
-        "--accept-nth=1".to_string(),
         "--with-nth=2".to_string(),
+        format!(
+            "--bind=enter:transform:if [[ $FZF_PROMPT =~ ^\\[ ]]; then {{ {menu_bin} \
+             --accept={{1}}; }} else echo accept; fi"
+        ),
         format!(
             "--bind=ctrl-g,esc:transform:[[ $FZF_PROMPT =~ ^\\[ ]] && {menu_bin} || echo abort"
         ),
@@ -536,8 +541,9 @@ fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
 
     let keys = config
         .lens
-        .keys()
-        .chain(config.external.keys())
+        .values()
+        .map(|value| value.key.as_str())
+        .chain(config.external.values().map(|value| value.key.as_str()))
         .collect::<Vec<_>>();
 
     let mut bytes = vec![];

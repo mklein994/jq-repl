@@ -41,6 +41,7 @@ impl Default for Keybinds {
 #[serde(deny_unknown_fields)]
 pub struct Lens {
     pub command: String,
+    /// The keybinding to trigger this lens
     pub key: String,
 }
 
@@ -49,6 +50,7 @@ pub struct Lens {
 #[serde(deny_unknown_fields)]
 pub struct External {
     pub command: String,
+    /// The keybinding to trigger this external command
     pub key: String,
     /// Extra flags passed to jq before piping to the command (e.g. `["-c"]`).
     #[serde(default)]

@@ -11,6 +11,9 @@ pub struct MenuState {
     /// The fully-assembled jq preview command, with the query embedded (i.e. frozen).
     pub frozen_preview: String,
     pub preview_window: String,
+    pub transform_bin: String,
+    pub reset_key: String,
+    pub menu_height: usize,
 }
 
 impl MenuState {
@@ -26,26 +29,22 @@ impl MenuState {
     }
 }
 
-/// Build the fzf action string for opening the menu.
-///
-/// - Saves state to `state_path` (already written by the caller before this is called).
-/// - Loads menu items from `menu_path` via `reload(cat ...)`.
-/// - Clears the query so the user can type to filter the menu.
-/// - Freezes the preview by embedding the current query into the command.
-/// - Changes the prompt to `[menu]> `.
-#[must_use]
-pub fn open_actions(state: &MenuState, menu_path: &Path) -> String {
+/// Build the fzf action string for opening the menu
+pub fn open_actions(state: &MenuState, menu_path: &Path) -> Result<String, Error> {
     let menu_path = crate::bash_quote(menu_path);
-    [
+    Ok([
         "change-prompt([menu]> )".to_string(),
         format!("unbind({})", state.key_bindings),
         format!("change-preview({})", state.frozen_preview),
-        "change-preview-window(up,75%,border-bottom)".to_string(),
+        format!(
+            "change-preview-window(up,{},border-bottom)",
+            state.menu_height
+        ),
         format!("reload(cat {menu_path})"),
         "change-query()".to_string(),
         "enable-search".to_string(),
     ]
-    .join("+")
+    .join("+"))
 }
 
 /// Build the fzf action string for closing the menu.
@@ -55,12 +54,53 @@ pub fn open_actions(state: &MenuState, menu_path: &Path) -> String {
 pub fn close_actions(state: &MenuState) -> String {
     [
         format!("rebind({})", state.key_bindings),
+        "reload()".to_string(),
         "disable-search".to_string(),
         format!("change-prompt({})", state.prompt),
         format!("change-query({})", state.query),
         format!("change-preview({})", state.preview),
         format!("change-preview-window({})", state.preview_window),
-        "reload()".to_string(),
+        format!("trigger({})", state.reset_key),
     ]
     .join("+")
+}
+
+pub fn accept_actions(state: &MenuState, action: &str) -> Result<String, Error> {
+    let keybinding = action;
+
+    Ok([
+        "reload()".to_string(),
+        "disable-search".to_string(),
+        format!("change-preview-window({})", state.preview_window),
+        format!("rebind({})", state.key_bindings),
+        format!("change-prompt({})", state.prompt),
+        format!("change-query({})", state.query),
+        format!("trigger({keybinding})"),
+    ]
+    .join("+"))
+}
+
+pub fn calculate_menu_height(target_menu_lines: usize) -> Result<usize, Error> {
+    let fzf_lines = std::env::var("FZF_LINES")?.parse::<usize>()?;
+    let fzf_preview_lines = std::env::var("FZF_PREVIEW_LINES")?.parse::<usize>()?;
+    let menu_height = fzf_lines - (fzf_lines - fzf_preview_lines) + 2 - target_menu_lines;
+    Ok(menu_height)
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error(transparent)]
+    VarError(#[from] std::env::VarError),
+
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+
+    #[error(transparent)]
+    Json(#[from] serde_json::Error),
+
+    #[error("TODO: {0}")]
+    Todo(&'static str),
+
+    #[error(transparent)]
+    ParseInt(#[from] std::num::ParseIntError),
 }

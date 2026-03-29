@@ -25,4 +25,7 @@ pub enum Error {
 
     #[error(transparent)]
     Json(#[from] serde_json::Error),
+
+    #[error("menu: {0}")]
+    Menu(#[from] crate::menu::Error),
 }

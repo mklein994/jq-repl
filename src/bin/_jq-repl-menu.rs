@@ -33,27 +33,38 @@ struct MenuOpts {
     /// The current query string
     #[arg(long, env = "FZF_QUERY")]
     query: String,
+
+    #[arg(long)]
+    accept: Option<String>,
 }
 
-fn run() -> Result<(), Box<dyn std::error::Error>> {
+fn run() -> anyhow::Result<()> {
     let opts = MenuOpts::parse();
 
     let state_path = PathBuf::from(std::env::var("JQ_REPL_STATE_PATH")?);
     let menu_path = PathBuf::from(std::env::var("JQ_REPL_MENU_PATH")?);
     let keys_to_unbind = std::env::var("JQ_REPL_MENU_KEYS_TO_UNBIND")?;
+    let menu_height = menu::calculate_menu_height(5)?;
+
+    let input_file_paths = std::env::var("JQ_REPL_INPUT_FILE_PATHS").unwrap_or_default();
 
     if opts.prompt.starts_with('[') {
         // Menu is open — close it and restore saved state
         let state = MenuState::load(&state_path)?;
         std::fs::remove_file(&state_path)?;
-        println!("{}", menu::close_actions(&state));
+
+        if let Some(action) = &opts.accept {
+            print!("{}", menu::accept_actions(&state, action)?);
+        } else {
+            print!("{}", menu::close_actions(&state));
+        }
     } else {
         // Menu is closed — open it and save current state
         let jq_bin = std::env::var("JQ_REPL_JQ_BIN")?;
         let jq_arg_prefix = std::env::var("JQ_REPL_JQ_ARG_PREFIX").unwrap_or_default();
         let color_flag = std::env::var("JQ_REPL_COLOR_FLAG").unwrap_or_default();
         let preview_window = std::env::var("JQ_REPL_PREVIEW_WINDOW").unwrap_or_default();
-        let input_file_paths = std::env::var("JQ_REPL_INPUT_FILE_PATHS").unwrap_or_default();
+        let transform_bin = std::env::var("JQ_REPL_TRANSFORM_BIN")?;
 
         // Reconstruct the jq flags from the current prompt state
         let prompt: Prompt = opts.prompt.parse().unwrap();
@@ -93,10 +104,13 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             frozen_preview,
             preview,
             preview_window,
+            transform_bin,
+            reset_key: std::env::var("JQ_REPL_RESET_KEY")?,
+            menu_height,
         };
 
         state.save(&state_path)?;
-        println!("{}", menu::open_actions(&state, &menu_path));
+        println!("{}", menu::open_actions(&state, &menu_path)?);
     }
 
     Ok(())
@@ -104,7 +118,12 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
 fn main() {
     if let Err(err) = run() {
-        println!("change-header(ERROR)+change-preview(echo {err})");
+        // Change the header to "ERROR" in bold, bright red, and show the error message on the
+        // preview window
+        println!(
+            "change-header(\x1b[1;91mERROR\x1b[22;39m)+change-preview:echo {}",
+            jq_repl::bash_quote(format!("{err}")),
+        );
     }
 }
 
