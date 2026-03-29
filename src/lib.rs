@@ -341,6 +341,12 @@ pub fn build_fzf_cmd(
     ]);
 
     if let Some(path) = history_file {
+        // If the menu is open, ctrl-p/ctrl-n go up and down the list, otherwise they navigate
+        // history.
+        fzf.args([
+            "--bind=ctrl-p:transform:[[ $FZF_PROMPT =~ ^\\[ ]] && echo up || echo prev-history",
+            "--bind=ctrl-n:transform:[[ $FZF_PROMPT =~ ^\\[ ]] && echo down || echo next-history",
+        ]);
         fzf.arg(format!("--history={}", path.display()));
     }
 
@@ -377,10 +383,16 @@ pub fn build_fzf_cmd(
         bash_quote(&opt.completion_bin)
     ));
 
-    fzf.arg(format!(
-        "--bind=alt-/:transform:{menu_bin}",
-        menu_bin = bash_quote(&opt.menu_bin)
-    ));
+    let menu_bin = bash_quote(&opt.menu_bin);
+    fzf.args([
+        "--delimiter=\t".to_string(),
+        "--accept-nth=1".to_string(),
+        "--with-nth=2".to_string(),
+        format!(
+            "--bind=ctrl-g,esc:transform:[[ $FZF_PROMPT =~ ^\\[ ]] && {menu_bin} || echo abort"
+        ),
+        format!("--bind=alt-/:transform:{menu_bin}"),
+    ]);
 
     // Simple readline-like key bindings that make life easier
     //
@@ -506,26 +518,37 @@ fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
         .iter()
         .map(|(key, lens)| {
             (
-                "lens",
                 key.as_str(),
+                "lens",
                 lens.key.as_str(),
                 lens.command.as_str(),
             )
         })
         .chain(config.external.iter().map(|(key, external)| {
             (
-                "external",
                 key.as_str(),
+                "external",
                 external.key.as_str(),
                 external.command.as_str(),
             )
         }))
         .map(|x| <[_; _]>::from(x).join("\t"));
 
-    let mut file = File::create(path)?;
-    let mut writer = TabWriter::new(&mut file);
+    let keys = config
+        .lens
+        .keys()
+        .chain(config.external.keys())
+        .collect::<Vec<_>>();
+
+    let mut bytes = vec![];
+    let mut writer = TabWriter::new(&mut bytes);
     write!(&mut writer, "{}", menu.collect::<Vec<_>>().join("\n"))?;
     writer.flush()?;
+
+    let mut file = File::create(path)?;
+    for (key, line) in keys.iter().zip(String::from_utf8(bytes)?.lines()) {
+        writeln!(&mut file, "{key}\t{line}")?;
+    }
 
     Ok(())
 }

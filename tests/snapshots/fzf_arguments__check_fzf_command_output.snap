@@ -10,12 +10,18 @@ $'--preview-window=up,99%,border-bottom' \
 --no-separator \
 $'--info=hidden' \
 $'--query=.' \
+$'--bind=ctrl-p:transform:[[ $FZF_PROMPT =~ ^\\[ ]] && echo up || echo prev-history' \
+$'--bind=ctrl-n:transform:[[ $FZF_PROMPT =~ ^\\[ ]] && echo down || echo next-history' \
 $'--history=/tmp/jq_repl_history' \
 $'--prompt=-n> ' \
 $'--preview=gojq -L $\'~/.jq\' -L $\'~/.jq/.jq\' --raw-output -n -C {q} $\'./tests/foo bar.json\'' \
 $'--bind=change:bg-transform-preview-label:printf "%s" {q} | _jq-repl-charcounter ' \
 $'--preview-label-pos=-1' \
 $'--bind=tab:transform-query:echo {q} | _jq-repl-tab-completion' \
+$'--delimiter=\t' \
+$'--accept-nth=1' \
+$'--with-nth=2' \
+$'--bind=ctrl-g,esc:transform:[[ $FZF_PROMPT =~ ^\\[ ]] && _jq-repl-menu || echo abort' \
 $'--bind=alt-/:transform:_jq-repl-menu' \
 $'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:toggle-preview-wrap,alt-W:toggle-preview-wrap-word,home:preview-top,end:preview-bottom' \
 $'--bind=alt-h:change-preview-window(~1,up,99%,border-bottom|~2,up,99%,border-bottom|~3,up,99%,border-bottom|up,99%,border-bottom)' \
