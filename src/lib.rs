@@ -294,8 +294,6 @@ pub fn build_fzf_cmd(
 
     let mut fzf = Command::new(&opt.fzf_bin);
 
-    let default_preview_window = "up,99%,border-bottom";
-
     let keys_to_unbind = vec![
         config.keybinds.reset_lens.as_str(),
         config.keybinds.cycle_frozen_headers.as_str(),
@@ -314,7 +312,6 @@ pub fn build_fzf_cmd(
         .env("JQ_REPL_JQ_ARG_PREFIX", &jq_arg_prefix)
         .env("JQ_REPL_COLOR_FLAG", &opt.color_flag)
         .env("JQ_REPL_NO_COLOR_FLAG", &opt.no_color_flag)
-        .env("JQ_REPL_PREVIEW_WINDOW", default_preview_window)
         .env("JQ_REPL_MENU_PATH", menu_path)
         .env("JQ_REPL_STATE_PATH", state_path)
         .env("JQ_REPL_MENU_KEYS_TO_UNBIND", keys_to_unbind.join(","))
@@ -334,7 +331,7 @@ pub fn build_fzf_cmd(
     // Setup layout and style
     fzf.args([
         "--disabled",
-        &format!("--preview-window={default_preview_window}"),
+        "--preview-window=up,99%,border-bottom",
         "--no-separator",
         "--info=hidden",
         "--query=.",
@@ -427,7 +424,6 @@ pub fn build_fzf_cmd(
 
     add_freeze_headers_binding(
         &mut fzf,
-        default_preview_window,
         &config.keybinds.cycle_frozen_headers,
         &[1, 2, 3, 0],
     );
@@ -475,18 +471,13 @@ pub fn build_fzf_cmd(
     Ok(fzf)
 }
 
-fn add_freeze_headers_binding(
-    fzf: &mut Command,
-    default_preview_window: &str,
-    binding: &str,
-    lines_frozen: &[u32],
-) {
+fn add_freeze_headers_binding(fzf: &mut Command, binding: &str, lines_frozen: &[u32]) {
     let mut layouts = vec![];
     for line in lines_frozen {
         if *line == 0 {
-            layouts.push(default_preview_window.to_string());
+            layouts.push(String::new());
         } else {
-            layouts.push(format!("~{line},{default_preview_window}"));
+            layouts.push(format!("~{line}"));
         }
     }
     fzf.arg(format!(

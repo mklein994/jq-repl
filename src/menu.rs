@@ -14,7 +14,6 @@ pub struct MenuState {
     pub preview: String,
     /// The fully-assembled jq preview command, with the query embedded (i.e. frozen).
     pub frozen_preview: String,
-    pub preview_window: String,
     pub transform_bin: String,
     pub reset_key: String,
     pub menu_height: usize,
@@ -82,10 +81,7 @@ pub fn open_actions(state: &MenuState, menu_path: &Path) -> Result<String, Error
         "change-prompt([menu]> )".to_string(),
         format!("unbind({})", state.key_bindings),
         format!("change-preview({})", state.frozen_preview),
-        format!(
-            "change-preview-window(up,{},border-bottom)",
-            state.menu_height
-        ),
+        format!("change-preview-window({})", state.menu_height),
         format!("reload(cat {menu_path})"),
         "change-query()".to_string(),
         "enable-search".to_string(),
@@ -105,7 +101,7 @@ pub fn close_actions(state: &MenuState) -> String {
         format!("change-prompt({})", state.prompt),
         format!("change-query({})", state.query),
         format!("change-preview({})", state.preview),
-        format!("change-preview-window({})", state.preview_window),
+        "change-preview-window()".to_string(),
         format!("trigger({})", state.reset_key),
     ]
     .join("+")
@@ -117,7 +113,7 @@ pub fn accept_actions(state: &MenuState, action: &str) -> Result<String, Error> 
     Ok([
         "reload()".to_string(),
         "disable-search".to_string(),
-        format!("change-preview-window({})", state.preview_window),
+        "change-preview-window()".to_string(),
         format!("rebind({})", state.key_bindings),
         format!("change-prompt({})", state.prompt),
         format!("change-query({})", state.query),

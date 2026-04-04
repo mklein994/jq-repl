@@ -19,7 +19,6 @@ use std::path::PathBuf;
 /// | `JQ_REPL_JQ_BIN`           | jq binary name (e.g. "gojq")                            |
 /// | `JQ_REPL_JQ_ARG_PREFIX`    | static jq arguments (library paths, `--raw-output`, etc.)|
 /// | `JQ_REPL_COLOR_FLAG`       | flag to enable color (e.g. `-C`)                         |
-/// | `JQ_REPL_PREVIEW_WINDOW`   | the preview window spec (e.g. "up,99%,border-bottom")    |
 /// | `JQ_REPL_INPUT_FILE_PATHS` | shell-quoted input file paths                            |
 /// | `JQ_REPL_MENU_STATE_FILE`  | path to write/read the JSON state snapshot               |
 /// | `JQ_REPL_MENU_FILE`        | path to the file containing menu items (tab-delimited)   |
@@ -63,7 +62,6 @@ fn run() -> anyhow::Result<()> {
         let jq_bin = std::env::var("JQ_REPL_JQ_BIN")?;
         let jq_arg_prefix = std::env::var("JQ_REPL_JQ_ARG_PREFIX").unwrap_or_default();
         let color_flag = std::env::var("JQ_REPL_COLOR_FLAG").unwrap_or_default();
-        let preview_window = std::env::var("JQ_REPL_PREVIEW_WINDOW").unwrap_or_default();
         let transform_bin = std::env::var("JQ_REPL_TRANSFORM_BIN")?;
 
         // Reconstruct the jq flags from the current prompt state
@@ -103,7 +101,6 @@ fn run() -> anyhow::Result<()> {
             query: opts.query,
             frozen_preview,
             preview,
-            preview_window,
             transform_bin,
             reset_key: std::env::var("JQ_REPL_RESET_KEY")?,
             menu_height,

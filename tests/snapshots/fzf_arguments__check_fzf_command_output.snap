@@ -24,7 +24,7 @@ $'--bind=enter:transform:if [[ $FZF_PROMPT =~ ^\\[ ]]; then { _jq-repl-menu --ac
 $'--bind=ctrl-g,esc:transform:[[ $FZF_PROMPT =~ ^\\[ ]] && _jq-repl-menu || echo abort' \
 $'--bind=alt-/:transform:_jq-repl-menu' \
 $'--bind=ctrl-k:kill-line,pgup:preview-page-up,pgdn:preview-page-down,alt-w:toggle-preview-wrap,alt-W:toggle-preview-wrap-word,home:preview-top,end:preview-bottom' \
-$'--bind=alt-h:change-preview-window(~1,up,99%,border-bottom|~2,up,99%,border-bottom|~3,up,99%,border-bottom|up,99%,border-bottom)' \
+$'--bind=alt-h:change-preview-window(~1|~2|~3|)' \
 $'--bind=alt-c:bg-transform:_jq-repl-transform -f +c -- $\'./tests/foo bar.json\'' \
 $'--bind=alt-C:bg-transform:_jq-repl-transform -f -c -- $\'./tests/foo bar.json\'' \
 $'--bind=alt-g:bg-transform:_jq-repl-transform -p braille -- $\'./tests/foo bar.json\'' \
