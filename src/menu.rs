@@ -57,8 +57,13 @@ pub fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
     let keys = config
         .lens
         .values()
-        .map(|value| value.key.as_str())
-        .chain(config.external.values().map(|value| value.key.as_str()))
+        .map(|value| format!("lens:{}", value.key))
+        .chain(
+            config
+                .external
+                .values()
+                .map(|value| format!("external:{}", value.key)),
+        )
         .collect::<Vec<_>>();
 
     let mut bytes = vec![];
@@ -108,14 +113,25 @@ pub fn close_actions(state: &MenuState) -> String {
 }
 
 pub fn accept_actions(state: &MenuState, action: &str) -> Result<String, Error> {
-    let keybinding = action;
+    let (kind, keybinding) = action
+        .split_once(':')
+        .ok_or_else(|| Error::UnknownActionKind(action.to_string()))?;
+    let base_prompt = match kind {
+        "lens" => Ok(state.prompt.clone()),
+        "external" => {
+            let mut prompt: crate::Prompt = state.prompt.parse().unwrap();
+            prompt.transform(None, Some(None));
+            Ok(prompt.to_string())
+        }
+        _ => Err(Error::UnknownActionKind(action.to_string())),
+    }?;
 
     Ok([
         "reload()".to_string(),
         "disable-search".to_string(),
         "change-preview-window()".to_string(),
         format!("rebind({})", state.key_bindings),
-        format!("change-prompt({})", state.prompt),
+        format!("change-prompt({base_prompt})"),
         format!("change-query({})", state.query),
         format!("trigger({keybinding})"),
     ]
@@ -140,12 +156,130 @@ pub enum Error {
     #[error(transparent)]
     Json(#[from] serde_json::Error),
 
-    #[error("TODO: {0}")]
-    Todo(&'static str),
+    #[error("unknown action: {0:?}")]
+    UnknownActionKind(String),
 
     #[error(transparent)]
     Utf8(#[from] std::string::FromUtf8Error),
 
     #[error(transparent)]
     ParseInt(#[from] std::num::ParseIntError),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Build a representative [`MenuState`] for use in tests.
+    ///
+    /// `prompt` is the prompt that was active when the menu was opened — it reflects whatever lens
+    /// (if any) was active at that point.
+    fn make_state(prompt: &str) -> MenuState {
+        MenuState {
+            key_bindings: "alt-g,ctrl-space,alt-G,alt-h,alt-c,alt-C,tab,alt-L,alt-e,alt-E,alt-l,\
+                           alt-v,alt-j,alt-J"
+                .to_string(),
+            prompt: prompt.to_string(),
+            query: ".foo".to_string(),
+            preview: "gojq --raw-output -n -C {q} './tests/foo bar.json'".to_string(),
+            frozen_preview: "gojq --raw-output -n -C '.foo' './tests/foo bar.json'".to_string(),
+            transform_bin: "_jq-repl-transform".to_string(),
+            reset_key: "alt-G".to_string(),
+            menu_height: 10,
+        }
+    }
+
+    // --- close_actions ---
+
+    /// Cancelling the menu (esc/ctrl-g) should restore the prompt exactly as it was when the menu
+    /// was opened, then trigger the reset-lens key so the preview is consistent with the prompt.
+    #[test]
+    fn close_restores_prompt_when_no_lens_was_active() {
+        let state = make_state("-n> ");
+        let actions = close_actions(&state);
+        assert!(
+            actions.contains("change-prompt(-n> )"),
+            "expected base prompt to be restored; got: {actions}"
+        );
+    }
+
+    #[test]
+    fn close_restores_prompt_when_lens_was_active() {
+        let state = make_state("-n gron> ");
+        let actions = close_actions(&state);
+        assert!(
+            actions.contains("change-prompt(-n gron> )"),
+            "expected lens prompt to be restored; got: {actions}"
+        );
+    }
+
+    #[test]
+    fn close_triggers_reset_key_to_sync_preview() {
+        let state = make_state("-n> ");
+        let actions = close_actions(&state);
+        assert!(
+            actions.contains("trigger(alt-G)"),
+            "expected reset_key trigger to sync preview; got: {actions}"
+        );
+    }
+
+    // --- accept_actions: lens ---
+
+    /// Accepting a lens from the menu should restore the base prompt temporarily, then let the
+    /// triggered lens binding (via _jq-repl-transform) set the final prompt. The base prompt
+    /// restoration step means the transform sees a clean slate.
+    #[test]
+    fn accept_lens_triggers_the_lens_key() {
+        let state = make_state("-n> ");
+        let actions = accept_actions(&state, "lens:ctrl-space").unwrap();
+        assert!(
+            actions.contains("trigger(ctrl-space)"),
+            "expected the lens keybinding to be triggered; got: {actions}"
+        );
+    }
+
+    #[test]
+    fn accept_lens_restores_base_prompt_before_trigger() {
+        let state = make_state("-n> ");
+        let actions = accept_actions(&state, "lens:ctrl-space").unwrap();
+        assert!(
+            actions.contains("change-prompt(-n> )"),
+            "expected base prompt before lens trigger; got: {actions}"
+        );
+    }
+
+    // --- accept_actions: external ---
+
+    /// This was the bug: when a lens was active when the menu was opened, accepting an *external*
+    /// tool (e.g. bat) would restore `state.prompt` (e.g. `-n gron> `). But the external's
+    /// execute binding doesn't go through _jq-repl-transform, so nothing corrected the prompt
+    /// afterward. The prompt ended up showing the lens as active even though it wasn't.
+    ///
+    /// The fix: accepting an external strips the lens program from the saved prompt, so the prompt
+    /// correctly reflects that no lens is active after the external closes.
+    #[test]
+    fn accept_external_restores_base_prompt_not_lens_prompt() {
+        // Simulate: gron lens was active when the menu was opened for the second time.
+        let state = make_state("-n gron> ");
+        let actions = accept_actions(&state, "external:alt-L").unwrap();
+
+        assert!(
+            actions.contains("change-prompt(-n> )"),
+            "expected base prompt (no lens) when accepting an external; got: {actions}"
+        );
+        assert!(
+            !actions.contains("change-prompt(-n gron> )"),
+            "should not restore stale lens prompt when accepting an external; got: {actions}"
+        );
+    }
+
+    #[test]
+    fn accept_external_triggers_the_external_key() {
+        let state = make_state("-n> ");
+        let actions = accept_actions(&state, "external:alt-L").unwrap();
+        assert!(
+            actions.contains("trigger(alt-L)"),
+            "expected the external keybinding to be triggered; got: {actions}"
+        );
+    }
 }
