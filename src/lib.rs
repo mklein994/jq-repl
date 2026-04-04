@@ -14,10 +14,8 @@ pub use prompt::Prompt;
 use shell_quote::{Bash, Quote};
 use std::fs::File;
 use std::io::IsTerminal;
-use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use tabwriter::TabWriter;
 use tempfile::{NamedTempFile, TempPath};
 
 fn get_jq_arg_prefix(opt: &Opt, jq_args: &[String]) -> String {
@@ -70,7 +68,7 @@ pub fn run() -> Result<(), Error> {
 
     let menu_state_path = resolve_menu_state_path(&opt)?;
     let menu_path = resolve_menu_path(&opt)?;
-    write_menu_contents(&menu_path, &config)?;
+    menu::write_menu_contents(&menu_path, &config)?;
 
     let history_file = resolve_history_file(&opt, &project)?;
 
@@ -515,48 +513,6 @@ fn add_runtime_flag_toggle(
              {input_file_paths}"
         ),
     ]);
-}
-
-fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
-    let menu = config
-        .lens
-        .iter()
-        .map(|(key, lens)| {
-            (
-                key.as_str(),
-                "lens",
-                lens.key.as_str(),
-                lens.command.as_str(),
-            )
-        })
-        .chain(config.external.iter().map(|(key, external)| {
-            (
-                key.as_str(),
-                "external",
-                external.key.as_str(),
-                external.command.as_str(),
-            )
-        }))
-        .map(|x| <[_; _]>::from(x).join("\t"));
-
-    let keys = config
-        .lens
-        .values()
-        .map(|value| value.key.as_str())
-        .chain(config.external.values().map(|value| value.key.as_str()))
-        .collect::<Vec<_>>();
-
-    let mut bytes = vec![];
-    let mut writer = TabWriter::new(&mut bytes);
-    write!(&mut writer, "{}", menu.collect::<Vec<_>>().join("\n"))?;
-    writer.flush()?;
-
-    let mut file = File::create(path)?;
-    for (key, line) in keys.iter().zip(String::from_utf8(bytes)?.lines()) {
-        writeln!(&mut file, "{key}\t{line}")?;
-    }
-
-    Ok(())
 }
 
 fn add_external_bindings(

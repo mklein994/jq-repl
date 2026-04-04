@@ -1,5 +1,9 @@
+use crate::Config;
 use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::prelude::*;
 use std::path::Path;
+use tabwriter::TabWriter;
 
 /// The mutable fzf state that the menu saves on open and restores on close.
 #[derive(Debug, Serialize, Deserialize)]
@@ -27,6 +31,48 @@ impl MenuState {
         let contents = std::fs::read_to_string(path)?;
         Ok(serde_json::from_str(&contents)?)
     }
+}
+
+pub fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
+    let menu = config
+        .lens
+        .iter()
+        .map(|(key, lens)| {
+            (
+                key.as_str(),
+                "lens",
+                lens.key.as_str(),
+                lens.command.as_str(),
+            )
+        })
+        .chain(config.external.iter().map(|(key, external)| {
+            (
+                key.as_str(),
+                "external",
+                external.key.as_str(),
+                external.command.as_str(),
+            )
+        }))
+        .map(|x| <[_; _]>::from(x).join("\t"));
+
+    let keys = config
+        .lens
+        .values()
+        .map(|value| value.key.as_str())
+        .chain(config.external.values().map(|value| value.key.as_str()))
+        .collect::<Vec<_>>();
+
+    let mut bytes = vec![];
+    let mut writer = TabWriter::new(&mut bytes);
+    write!(&mut writer, "{}", menu.collect::<Vec<_>>().join("\n"))?;
+    writer.flush()?;
+
+    let mut file = File::create(path)?;
+    for (key, line) in keys.iter().zip(String::from_utf8(bytes)?.lines()) {
+        writeln!(&mut file, "{key}\t{line}")?;
+    }
+
+    Ok(())
 }
 
 /// Build the fzf action string for opening the menu
@@ -100,6 +146,9 @@ pub enum Error {
 
     #[error("TODO: {0}")]
     Todo(&'static str),
+
+    #[error(transparent)]
+    Utf8(#[from] std::string::FromUtf8Error),
 
     #[error(transparent)]
     ParseInt(#[from] std::num::ParseIntError),
