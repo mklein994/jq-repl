@@ -230,7 +230,7 @@ impl Opt {
 
     /// Get the resolved arguments passed to `jq`, including those from `jq_args` and those detected
     /// from `-n` and `-R`, using their respective flag overrides.
-    pub fn jq_args(&self) -> Vec<String> {
+    fn jq_args(&self) -> Vec<String> {
         let mut args = self.jq_args.clone();
 
         if self.null_input() {
@@ -242,6 +242,30 @@ impl Opt {
         }
 
         args
+    }
+
+    /// Get the leading arguments to pass when calling `jq`
+    pub fn get_jq_arg_prefix(&self) -> String {
+        let mut prefix = if !self.clean && self.use_default_args {
+            let default_lib_dir = &self.jq_repl_lib; // setup the module path
+            let default_lib_prelude = default_lib_dir.join(".jq"); // import all modules
+            let mut default_arg_prefix = vec![format!("-L {}", crate::bash_quote(default_lib_dir))];
+            if !self.no_default_include {
+                default_arg_prefix.push(format!("-L {}", crate::bash_quote(default_lib_prelude)));
+            }
+            default_arg_prefix.push("--raw-output".to_string());
+            default_arg_prefix.join(" ")
+        } else {
+            String::new()
+        };
+
+        let jq_args = self.jq_args();
+        if !jq_args.is_empty() {
+            prefix.push(' ');
+            prefix.push_str(&jq_args.join(" "));
+        }
+
+        prefix
     }
 }
 

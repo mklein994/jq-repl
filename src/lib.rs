@@ -18,28 +18,6 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tempfile::{NamedTempFile, TempPath};
 
-fn get_jq_arg_prefix(opt: &Opt, jq_args: &[String]) -> String {
-    let mut prefix = if !opt.clean && opt.use_default_args {
-        let default_lib_dir = &opt.jq_repl_lib; // setup the module path
-        let default_lib_prelude = default_lib_dir.join(".jq"); // import all modules
-        let mut default_arg_prefix = vec![format!("-L {}", bash_quote(default_lib_dir))];
-        if !opt.no_default_include {
-            default_arg_prefix.push(format!("-L {}", bash_quote(default_lib_prelude)));
-        }
-        default_arg_prefix.push("--raw-output".to_string());
-        default_arg_prefix.join(" ")
-    } else {
-        String::new()
-    };
-
-    if !jq_args.is_empty() {
-        prefix.push(' ');
-        prefix.push_str(&jq_args.join(" "));
-    }
-
-    prefix
-}
-
 pub fn run() -> Result<(), Error> {
     let opt = Opt::parse();
 
@@ -276,7 +254,7 @@ pub fn build_fzf_cmd(
 ) -> Result<Command, Error> {
     let jq_bin = &opt.jq_bin;
 
-    let jq_arg_prefix = get_jq_arg_prefix(opt, &opt.jq_args());
+    let jq_arg_prefix = opt.get_jq_arg_prefix();
 
     let mut fzf = Command::new(&opt.fzf_bin);
 
