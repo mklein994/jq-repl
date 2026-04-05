@@ -141,7 +141,10 @@ pub fn accept_actions(state: &MenuState, action: &str) -> Result<String, Error> 
 pub fn calculate_menu_height(target_menu_lines: usize) -> Result<usize, Error> {
     let fzf_lines = std::env::var("FZF_LINES")?.parse::<usize>()?;
     let fzf_preview_lines = std::env::var("FZF_PREVIEW_LINES")?.parse::<usize>()?;
-    let menu_height = fzf_lines - (fzf_lines - fzf_preview_lines) + 2 - target_menu_lines;
+    let minimum_list_area_padding = 2; // This is apparently hard-coded by fzf
+
+    let menu_height =
+        fzf_lines - (fzf_lines - fzf_preview_lines) + minimum_list_area_padding - target_menu_lines;
     Ok(menu_height)
 }
 
