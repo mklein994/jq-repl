@@ -142,7 +142,15 @@ pub fn accept_actions(state: &MenuState, action: &str) -> Result<String, Error> 
         format!("change-prompt({base_prompt})"),
         format!("change-query({})", state.query),
         format!("trigger({keybinding})"),
+        if kind == "external" {
+            format!("trigger({})", state.reset_key)
+        } else {
+            String::new()
+        },
     ]
+    .into_iter()
+    .filter(|x| !x.is_empty())
+    .collect::<Vec<_>>()
     .join("+"))
 }
 
