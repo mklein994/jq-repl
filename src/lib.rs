@@ -5,6 +5,9 @@ mod opt;
 mod prompt;
 pub mod transform;
 
+#[macro_use]
+extern crate log;
+
 use clap::Parser;
 pub use config::Config;
 use directories::ProjectDirs;
@@ -18,7 +21,27 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tempfile::{NamedTempFile, TempPath};
 
+pub fn setup_logging<P: AsRef<Path>>(log_file_name: P, msg: &str) -> Result<(), Error> {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(log_file_name);
+    let log_file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)?;
+    env_logger::builder()
+        .target(env_logger::Target::Pipe(Box::new(log_file)))
+        .write_style(env_logger::WriteStyle::Always)
+        .try_init()?;
+
+    info!("{msg}");
+
+    Ok(())
+}
+
 pub fn run() -> Result<(), Error> {
+    setup_logging(
+        "debug.log",
+        &format!(":: started jq-repl: pid {}", std::process::id()),
+    )?;
     let opt = Opt::parse();
 
     if opt.version_verbose {

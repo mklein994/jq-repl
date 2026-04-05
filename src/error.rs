@@ -28,4 +28,7 @@ pub enum Error {
 
     #[error("menu: {0}")]
     Menu(#[from] crate::menu::Error),
+
+    #[error(transparent)]
+    Logger(#[from] log::SetLoggerError),
 }

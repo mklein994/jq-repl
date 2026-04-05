@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate log;
+
 use clap::Parser;
 use jq_repl::Prompt;
 use jq_repl::menu::{self, MenuState};
@@ -38,6 +41,8 @@ struct MenuOpts {
 }
 
 fn run() -> anyhow::Result<()> {
+    jq_repl::setup_logging("debug.log", &format!("menu: pid {}", std::process::id()))?;
+
     let opts = MenuOpts::parse();
 
     let state_path = PathBuf::from(std::env::var("JQ_REPL_STATE_PATH")?);
