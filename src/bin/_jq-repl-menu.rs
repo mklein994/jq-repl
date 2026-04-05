@@ -52,6 +52,8 @@ fn run() -> anyhow::Result<()> {
 
     let input_file_paths = std::env::var("JQ_REPL_INPUT_FILE_PATHS").unwrap_or_default();
 
+    debug!("current prompt: {}", opts.prompt);
+
     if opts.prompt.starts_with('[') {
         // Menu is open — close it and restore saved state
         let state = MenuState::load(&state_path)?;

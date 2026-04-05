@@ -21,18 +21,21 @@ pub struct MenuState {
 
 impl MenuState {
     pub fn save(&self, path: &Path) -> Result<(), crate::Error> {
+        info!("saving menu state");
         let contents = serde_json::to_string(self)?;
         std::fs::write(path, contents)?;
         Ok(())
     }
 
     pub fn load(path: &Path) -> Result<Self, crate::Error> {
+        info!("loading menu state");
         let contents = std::fs::read_to_string(path)?;
         Ok(serde_json::from_str(&contents)?)
     }
 }
 
 pub fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
+    info!("writing menu contents");
     let menu = config
         .lens
         .iter()
@@ -81,6 +84,7 @@ pub fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
 
 /// Build the fzf action string for opening the menu
 pub fn open_actions(state: &MenuState, menu_path: &Path) -> Result<String, Error> {
+    info!("open_actions");
     let menu_path = crate::bash_quote(menu_path);
     Ok([
         "change-prompt([menu]> )".to_string(),
@@ -99,6 +103,8 @@ pub fn open_actions(state: &MenuState, menu_path: &Path) -> Result<String, Error
 /// Restores the prompt, preview command, preview window layout, list contents, and query.
 #[must_use]
 pub fn close_actions(state: &MenuState) -> String {
+    info!("close_actions");
+
     [
         format!("rebind({})", state.key_bindings),
         "reload()".to_string(),
@@ -113,6 +119,8 @@ pub fn close_actions(state: &MenuState) -> String {
 }
 
 pub fn accept_actions(state: &MenuState, action: &str) -> Result<String, Error> {
+    info!("accept_actions: {action:?}");
+
     let (kind, keybinding) = action
         .split_once(':')
         .ok_or_else(|| Error::UnknownActionKind(action.to_string()))?;
