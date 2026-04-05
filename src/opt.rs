@@ -1,5 +1,6 @@
 use clap::{ValueHint, builder::ArgPredicate};
 use clap_complete::Shell;
+use std::io::IsTerminal;
 use std::path::PathBuf;
 
 #[allow(clippy::struct_excessive_bools)]
@@ -115,7 +116,7 @@ pub struct Opt {
     /// This is the default when no file path was given and standard input is from an interactive
     /// terminal.
     #[arg(short, long)]
-    pub null_input: bool,
+    null_input: bool,
 
     /// The flag to pass to `jq` inside fzf to indicate null input
     #[arg(
@@ -216,7 +217,32 @@ pub struct Opt {
 
     /// Additional args passed to `jq`
     #[arg(last = true)]
-    pub jq_args: Vec<String>,
+    jq_args: Vec<String>,
+}
+
+impl Opt {
+    /// Check if `null` should be used as the input value
+    ///
+    /// If the --null-input flag was passed, use that, otherwise detect if stdin is a TTY.
+    pub fn null_input(&self) -> bool {
+        self.null_input || (std::io::stdin().is_terminal() && self.files.is_empty())
+    }
+
+    /// Get the resolved arguments passed to `jq`, including those from `jq_args` and those detected
+    /// from `-n` and `-R`, using their respective flag overrides.
+    pub fn jq_args(&self) -> Vec<String> {
+        let mut args = self.jq_args.clone();
+
+        if self.null_input() {
+            args.push(self.null_input_flag.clone());
+        }
+
+        if self.raw_input {
+            args.push(self.raw_input_flag.clone());
+        }
+
+        args
+    }
 }
 
 #[cfg(test)]

@@ -72,16 +72,6 @@ pub fn run() -> Result<(), Error> {
 
     let history_file = resolve_history_file(&opt, &project)?;
 
-    let mut resolved_jq_args = opt.jq_args.clone();
-    let null_input = opt.null_input || (std::io::stdin().is_terminal() && opt.files.is_empty());
-    if null_input {
-        resolved_jq_args.push(opt.null_input_flag.clone());
-    }
-
-    if opt.raw_input {
-        resolved_jq_args.push(opt.raw_input_flag.clone());
-    }
-
     let files = get_files(&opt.files)?;
 
     if files.len() > 1 && opt.pass_as_stdin {
@@ -106,8 +96,6 @@ pub fn run() -> Result<(), Error> {
     let mut fzf_cmd = build_fzf_cmd(
         &opt,
         &config,
-        null_input,
-        &resolved_jq_args,
         &menu_state_path,
         &menu_path,
         history_file.as_deref(),
@@ -281,8 +269,6 @@ fn resolve_history_file(opt: &Opt, project: &ProjectDirs) -> Result<Option<PathB
 pub fn build_fzf_cmd(
     opt: &Opt,
     config: &Config,
-    null_input: bool,
-    jq_args: &[String],
     state_path: &Path,
     menu_path: &Path,
     history_file: Option<&Path>,
@@ -290,7 +276,7 @@ pub fn build_fzf_cmd(
 ) -> Result<Command, Error> {
     let jq_bin = &opt.jq_bin;
 
-    let jq_arg_prefix = get_jq_arg_prefix(opt, jq_args);
+    let jq_arg_prefix = get_jq_arg_prefix(opt, &opt.jq_args());
 
     let mut fzf = Command::new(&opt.fzf_bin);
 
@@ -354,7 +340,7 @@ pub fn build_fzf_cmd(
     // pressed. As a consequence, the format should be kept consistent between the two.
     fzf.arg(format!(
         "--prompt={}",
-        Prompt::new(opt.raw_input, null_input)
+        Prompt::new(opt.raw_input, opt.null_input())
     ));
 
     fzf.arg(format!(
