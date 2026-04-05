@@ -44,11 +44,8 @@ pub fn run() -> Result<(), Error> {
         Config::load(&config_path)?.unwrap_or_default()
     };
 
-    let menu_state_path = resolve_menu_state_path(&opt)?;
-    let menu_path = resolve_menu_path(&opt)?;
-    menu::write_menu_contents(&menu_path, &config)?;
-
-    let history_file = resolve_history_file(&opt, &project)?;
+    let paths = ResolvedPaths::new(&opt, &project)?;
+    menu::write_menu_contents(&paths.menu_path, &config)?;
 
     let files = get_files(&opt.files)?;
 
@@ -71,14 +68,7 @@ pub fn run() -> Result<(), Error> {
     };
 
     // Keep a reference to the temp file alive until we quit
-    let mut fzf_cmd = build_fzf_cmd(
-        &opt,
-        &config,
-        &menu_state_path,
-        &menu_path,
-        history_file.as_deref(),
-        &input_file_paths,
-    )?;
+    let mut fzf_cmd = build_fzf_cmd(&opt, &config, &paths, &input_file_paths)?;
 
     if opt.show_fzf_command {
         print_fzf_command(&fzf_cmd);
@@ -201,55 +191,72 @@ impl std::fmt::Display for InputFile<'_> {
     }
 }
 
-fn resolve_menu_state_path(opt: &Opt) -> Result<TempPath, Error> {
-    if let Some(path) = &opt.state_path {
-        Ok(TempPath::try_from_path(path)?)
-    } else {
-        Ok(tempfile::Builder::new()
-            .prefix("jq_repl_state.")
-            .suffix(".json")
-            .tempfile()?
-            .into_temp_path())
-    }
+/// Manage resolving temporary files or state files used by jq-repl
+pub struct ResolvedPaths {
+    pub state_path: TempPath,
+    pub menu_path: TempPath,
+    pub history_file: Option<PathBuf>,
 }
 
-fn resolve_menu_path(opt: &Opt) -> Result<TempPath, Error> {
-    if let Some(path) = &opt.menu_path {
-        Ok(TempPath::try_from_path(path)?)
-    } else {
-        Ok(tempfile::Builder::new()
-            .prefix("jq_repl_menu.")
-            .tempfile()?
-            .into_temp_path())
+impl ResolvedPaths {
+    /// Determine the paths to use from the given options and configuration
+    ///
+    /// When using default files, it may create the files and parent directories if they don't
+    /// exist.
+    fn new(opt: &Opt, project: &ProjectDirs) -> Result<Self, Error> {
+        let state_path = if let Some(path) = &opt.state_path {
+            TempPath::try_from_path(path)?
+        } else {
+            tempfile::Builder::new()
+                .prefix("jq_repl_state.")
+                .suffix(".json")
+                .tempfile()?
+                .into_temp_path()
+        };
+
+        let menu_path = if let Some(path) = &opt.menu_path {
+            TempPath::try_from_path(path)?
+        } else {
+            tempfile::Builder::new()
+                .prefix("jq_repl_menu.")
+                .tempfile()?
+                .into_temp_path()
+        };
+
+        let history_file = Self::resolve_history_file(opt, project)?;
+
+        Ok(Self {
+            state_path,
+            menu_path,
+            history_file,
+        })
     }
-}
 
-/// Determine what the path to the history file from the options and project directories.
-///
-/// If the default XDG path is used, parent directories up to the file path are created if they
-/// don't exist.
-fn resolve_history_file(opt: &Opt, project: &ProjectDirs) -> Result<Option<PathBuf>, Error> {
-    if opt.no_history {
-        Ok(None)
-    } else if opt.history_file.is_some() {
-        Ok(opt.history_file.clone())
-    } else {
-        let path = project.data_dir().join("history");
+    /// Determine what the path to the history file from the options and project directories.
+    ///
+    /// If the default XDG path is used, parent directories up to the file path are created if they
+    /// don't exist.
+    fn resolve_history_file(opt: &Opt, project: &ProjectDirs) -> Result<Option<PathBuf>, Error> {
+        if opt.no_history {
+            Ok(None)
+        } else if opt.history_file.is_some() {
+            Ok(opt.history_file.clone())
+        } else {
+            let path = project.data_dir().join("history");
 
-        if let Some(parent_dir) = path.parent() {
-            std::fs::create_dir_all(parent_dir)?;
+            if let Some(parent_dir) = path.parent() {
+                std::fs::create_dir_all(parent_dir)?;
+            }
+
+            Ok(Some(path))
         }
-
-        Ok(Some(path))
     }
 }
 
 pub fn build_fzf_cmd(
     opt: &Opt,
     config: &Config,
-    state_path: &Path,
-    menu_path: &Path,
-    history_file: Option<&Path>,
+    paths: &ResolvedPaths,
     input_file_paths: &str,
 ) -> Result<Command, Error> {
     let jq_bin = &opt.jq_bin;
@@ -276,8 +283,8 @@ pub fn build_fzf_cmd(
         .env("JQ_REPL_JQ_ARG_PREFIX", &jq_arg_prefix)
         .env("JQ_REPL_COLOR_FLAG", &opt.color_flag)
         .env("JQ_REPL_NO_COLOR_FLAG", &opt.no_color_flag)
-        .env("JQ_REPL_MENU_PATH", menu_path)
-        .env("JQ_REPL_STATE_PATH", state_path)
+        .env("JQ_REPL_MENU_PATH", &paths.menu_path)
+        .env("JQ_REPL_STATE_PATH", &paths.state_path)
         .env("JQ_REPL_MENU_KEYS_TO_UNBIND", keys_to_unbind.join(","))
         .env("JQ_REPL_TRANSFORM_BIN", &opt.transform_bin)
         .env("JQ_REPL_INPUT_FILE_PATHS", input_file_paths)
@@ -301,7 +308,7 @@ pub fn build_fzf_cmd(
         "--query=.",
     ]);
 
-    if let Some(path) = history_file {
+    if let Some(path) = &paths.history_file {
         // If the menu is open, ctrl-p/ctrl-n go up and down the list, otherwise they navigate
         // history.
         fzf.args([
