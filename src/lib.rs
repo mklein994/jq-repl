@@ -253,6 +253,10 @@ impl ResolvedPaths {
     }
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "passing arguments to fzf is inherently complicated"
+)]
 pub fn build_fzf_cmd(
     opt: &Opt,
     config: &Config,
