@@ -36,17 +36,15 @@ impl MenuState {
 
 pub fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
     info!("writing menu contents");
-    let menu = config
-        .lens
-        .iter()
-        .map(|(key, lens)| {
+    let menu = std::iter::once_with(|| ("key", "kind", "keybinding", "command"))
+        .chain(config.lens.iter().map(|(key, lens)| {
             (
                 key.as_str(),
                 "lens",
                 lens.key.as_str(),
                 lens.command.as_str(),
             )
-        })
+        }))
         .chain(config.external.iter().map(|(key, external)| {
             (
                 key.as_str(),
@@ -57,10 +55,13 @@ pub fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
         }))
         .map(|x| <[_; _]>::from(x).join("\t"));
 
-    let keys = config
-        .lens
-        .values()
-        .map(|value| format!("lens:{}", value.key))
+    let keys = std::iter::once_with(|| "lookup".to_string())
+        .chain(
+            config
+                .lens
+                .values()
+                .map(|value| format!("lens:{}", value.key)),
+        )
         .chain(
             config
                 .external
@@ -88,6 +89,7 @@ pub fn open_actions(state: &MenuState, menu_path: &Path) -> Result<String, Error
     let menu_path = crate::bash_quote(menu_path);
     Ok([
         "change-prompt([menu]> )".to_string(),
+        "change-header-lines(1)".to_string(),
         format!("unbind({})", state.key_bindings),
         format!("change-preview({})", state.frozen_preview),
         format!("change-preview-window({})", state.menu_height),
@@ -110,6 +112,7 @@ pub fn close_actions(state: &MenuState) -> String {
         "reload()".to_string(),
         "disable-search".to_string(),
         format!("change-prompt({})", state.prompt),
+        "change-header-lines(0)".to_string(),
         format!("change-query({})", state.query),
         format!("change-preview({})", state.preview),
         "change-preview-window()".to_string(),
@@ -138,6 +141,7 @@ pub fn accept_actions(state: &MenuState, action: &str) -> Result<String, Error> 
         "reload()".to_string(),
         "disable-search".to_string(),
         "change-preview-window()".to_string(),
+        "change-header-lines(0)".to_string(),
         format!("rebind({})", state.key_bindings),
         format!("change-prompt({base_prompt})"),
         format!("change-query({})", state.query),

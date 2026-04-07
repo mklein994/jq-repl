@@ -48,7 +48,7 @@ fn run() -> anyhow::Result<()> {
     let state_path = PathBuf::from(std::env::var("JQ_REPL_STATE_PATH")?);
     let menu_path = PathBuf::from(std::env::var("JQ_REPL_MENU_PATH")?);
     let keys_to_unbind = std::env::var("JQ_REPL_MENU_KEYS_TO_UNBIND")?;
-    let menu_height = menu::calculate_menu_height(5)?;
+    let menu_height = menu::calculate_menu_height(5 + 1)?; // target + header lines
 
     let input_file_paths = std::env::var("JQ_REPL_INPUT_FILE_PATHS").unwrap_or_default();
 

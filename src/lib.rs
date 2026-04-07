@@ -330,6 +330,7 @@ pub fn build_fzf_cmd(
     fzf.args([
         "--disabled",
         "--preview-window=up,99%,border-bottom",
+        "--layout=reverse-list",
         "--no-separator",
         "--info=hidden",
         "--query=.",
