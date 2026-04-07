@@ -36,18 +36,18 @@ impl MenuState {
 
 pub fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
     info!("writing menu contents");
-    let menu = std::iter::once_with(|| ("key", "kind", "keybinding", "command"))
-        .chain(config.lens.iter().map(|(key, lens)| {
+    let menu = std::iter::once_with(|| ("id", "kind", "binding", "command"))
+        .chain(config.lens.iter().map(|(id, lens)| {
             (
-                key.as_str(),
+                id.as_str(),
                 "lens",
                 lens.key.as_str(),
                 lens.command.as_str(),
             )
         }))
-        .chain(config.external.iter().map(|(key, external)| {
+        .chain(config.external.iter().map(|(id, external)| {
             (
-                key.as_str(),
+                id.as_str(),
                 "external",
                 external.key.as_str(),
                 external.command.as_str(),
@@ -55,7 +55,7 @@ pub fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
         }))
         .map(|x| <[_; _]>::from(x).join("\t"));
 
-    let keys = std::iter::once_with(|| "lookup".to_string())
+    let rows = std::iter::once_with(|| "lookup".to_string())
         .chain(
             config
                 .lens
@@ -76,8 +76,8 @@ pub fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
     writer.flush()?;
 
     let mut file = File::create(path)?;
-    for (key, line) in keys.iter().zip(String::from_utf8(bytes)?.lines()) {
-        writeln!(&mut file, "{key}\t{line}")?;
+    for (lookup, row) in rows.iter().zip(String::from_utf8(bytes)?.lines()) {
+        writeln!(&mut file, "{lookup}\t{row}")?;
     }
 
     Ok(())
