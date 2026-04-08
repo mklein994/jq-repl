@@ -22,13 +22,20 @@ use std::process::{Command, Stdio};
 use tempfile::{NamedTempFile, TempPath};
 
 pub fn setup_logging<P: AsRef<Path>>(log_file_name: P, msg: &str) -> Result<(), Error> {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(log_file_name);
-    let log_file = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(path)?;
+    let target = if std::env::var("RUST_LOG").is_ok_and(|x| !x.is_empty()) {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(log_file_name);
+        let log_file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)?;
+
+        env_logger::Target::Pipe(Box::new(log_file))
+    } else {
+        env_logger::Target::default()
+    };
+
     env_logger::builder()
-        .target(env_logger::Target::Pipe(Box::new(log_file)))
+        .target(target)
         .write_style(env_logger::WriteStyle::Always)
         .try_init()?;
 

@@ -41,8 +41,6 @@ struct MenuOpts {
 }
 
 fn run() -> anyhow::Result<()> {
-    jq_repl::setup_logging("debug.log", &format!("menu: pid {}", std::process::id()))?;
-
     let opts = MenuOpts::parse();
 
     let state_path = PathBuf::from(std::env::var("JQ_REPL_STATE_PATH")?);
@@ -121,6 +119,9 @@ fn run() -> anyhow::Result<()> {
 }
 
 fn main() {
+    jq_repl::setup_logging("debug.log", &format!("menu: pid {}", std::process::id()))
+        .expect("failed to write to debug log");
+
     if let Err(err) = run() {
         // Change the header to "ERROR" in bold, bright red, and show the error message on the
         // preview window
