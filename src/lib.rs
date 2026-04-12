@@ -388,11 +388,10 @@ pub fn build_fzf_cmd(
 
     let menu_bin = bash_quote(&opt.menu_bin);
     fzf.args([
-        "--delimiter=\t".to_string(),
-        "--with-nth=2".to_string(),
+        "--delimiter=\u{a0}".to_string(),
         format!(
             "--bind=enter:transform:if [[ $FZF_PROMPT =~ ^\\[ ]]; then {{ {menu_bin} \
-             --accept={{1}}; }} else echo accept; fi"
+             --accept={{2}}:{{3}}; }} else echo accept; fi"
         ),
         format!(
             "--bind=ctrl-g,esc:transform:[[ $FZF_PROMPT =~ ^\\[ ]] && {menu_bin} || echo abort"

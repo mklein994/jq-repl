@@ -34,51 +34,43 @@ impl MenuState {
     }
 }
 
-pub fn write_menu_contents(path: &Path, config: &Config) -> Result<(), Error> {
+pub fn write_menu_contents<P: AsRef<Path>>(path: &P, config: &Config) -> Result<(), Error> {
     info!("writing menu contents");
-    let menu = std::iter::once_with(|| ("id", "kind", "binding", "command"))
-        .chain(config.lens.iter().map(|(id, lens)| {
-            (
-                id.as_str(),
-                "lens",
-                lens.key.as_str(),
-                lens.command.as_str(),
-            )
-        }))
-        .chain(config.external.iter().map(|(id, external)| {
-            (
-                id.as_str(),
-                "external",
-                external.key.as_str(),
-                external.command.as_str(),
-            )
-        }))
-        .map(|x| <[_; _]>::from(x).join("\t"));
 
-    let rows = std::iter::once_with(|| "lookup".to_string())
-        .chain(
-            config
-                .lens
-                .values()
-                .map(|value| format!("lens:{}", value.key)),
-        )
+    let headers = ["id", "kind", "keybinding", "command"];
+    let mut menu: Vec<[&str; 4]> = config
+        .lens
+        .iter()
+        .map(|(id, lens)| [id, "lens", &lens.key, &lens.command])
         .chain(
             config
                 .external
-                .values()
-                .map(|value| format!("external:{}", value.key)),
+                .iter()
+                .map(|(id, external)| [id, "external", &external.key, &external.command]),
         )
+        .collect();
+
+    menu.sort_unstable_by_key(|x| x[0]);
+
+    // This works with 2 different parts working together:
+    // 1. fzf --delimiter=$'\u00a0'
+    // 2. TabWriter::padding(1)
+    //
+    // The columns should be separated by 2 spaces. The zero-width space (U+00a0) shows up as a
+    // visible space, so we subtract one from the padding. Fzf can use this zero-width space as the
+    // delimiter.
+    let rows = std::iter::once(headers)
+        .chain(menu)
+        .map(|x| x.join("\t\u{a0}"))
         .collect::<Vec<_>>();
 
-    let mut bytes = vec![];
-    let mut writer = TabWriter::new(&mut bytes);
-    write!(&mut writer, "{}", menu.collect::<Vec<_>>().join("\n"))?;
-    writer.flush()?;
-
     let mut file = File::create(path)?;
-    for (lookup, row) in rows.iter().zip(String::from_utf8(bytes)?.lines()) {
-        writeln!(&mut file, "{lookup}\t{row}")?;
+
+    let mut writer = TabWriter::new(&mut file).padding(1);
+    for row in rows {
+        writeln!(writer, "{row}")?;
     }
+    writer.flush()?;
 
     Ok(())
 }
@@ -122,6 +114,7 @@ pub fn close_actions(state: &MenuState) -> String {
 }
 
 pub fn accept_actions(state: &MenuState, action: &str) -> Result<String, Error> {
+    let action = action.trim();
     info!("accept_actions: {action:?}");
 
     let (kind, keybinding) = action

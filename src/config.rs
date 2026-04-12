@@ -61,7 +61,7 @@ impl Config {
     /// Load config from the given path.
     ///
     /// Returns `Ok(None)` if the file does not exist.
-    pub fn load(path: &Path) -> Result<Option<Self>, ConfigError> {
+    pub fn load<P: AsRef<Path>>(path: &P) -> Result<Option<Self>, ConfigError> {
         match std::fs::read_to_string(path) {
             Ok(contents) => Ok(Some(toml::from_str(&contents)?)),
             Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(None),
