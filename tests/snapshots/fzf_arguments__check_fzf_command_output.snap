@@ -9,7 +9,6 @@ fzf \
 $'--preview-window=up,99%,border-bottom' \
 --no-separator \
 $'--info=hidden' \
-$'--query=.' \
 $'--bind=ctrl-p:transform:[[ $FZF_PROMPT =~ ^\\[ ]] && echo up || echo prev-history' \
 $'--bind=ctrl-n:transform:[[ $FZF_PROMPT =~ ^\\[ ]] && echo down || echo next-history' \
 $'--history=/tmp/jq_repl_history' \

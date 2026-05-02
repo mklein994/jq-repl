@@ -332,8 +332,11 @@ pub fn build_fzf_cmd(
         "--preview-window=up,99%,border-bottom",
         "--no-separator",
         "--info=hidden",
-        "--query=.",
     ]);
+
+    if !opt.null_input() {
+        fzf.arg("--query=.");
+    }
 
     if let Some(path) = &paths.history_file {
         // If the menu is open, ctrl-p/ctrl-n go up and down the list, otherwise they navigate
