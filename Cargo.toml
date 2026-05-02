@@ -4,7 +4,6 @@ version = "0.28.1"
 description = "Interactively explore JSON with fzf and jq."
 license = "MIT"
 edition = "2024"
-authors = ["Matthew Klein <mklein994@gmail.com>"]
 default-run = "jq-repl"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
