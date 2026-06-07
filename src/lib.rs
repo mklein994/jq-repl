@@ -85,7 +85,7 @@ pub fn run() -> Result<(), Error> {
         .map(std::string::ToString::to_string)
         .collect::<Vec<_>>();
     let input_file_paths = if opt.pass_as_stdin {
-        format!("< {}", &input_files[0])
+        format!("< {}", input_files[0])
     } else {
         input_files.join(" ")
     };
@@ -360,7 +360,7 @@ pub fn build_fzf_cmd(
 
     fzf.arg(format!(
         "--preview={jq_bin} {jq_arg_prefix} {} {{q}} {input_file_paths}",
-        &opt.color_flag
+        opt.color_flag
     ));
 
     // Setup an indicator that shows when approaching the query limit
@@ -368,7 +368,7 @@ pub fn build_fzf_cmd(
         &format!(
             "--bind=change:bg-transform-preview-label:printf \"%s\" {{q}} | {} {}",
             bash_quote(&opt.charcounter_bin),
-            &opt.charcounter_options.join(" "),
+            opt.charcounter_options.join(" "),
         ),
         "--preview-label-pos=-1", // Right-aligned
     ]);
