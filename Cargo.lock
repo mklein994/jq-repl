@@ -372,7 +372,7 @@ dependencies = [
 
 [[package]]
 name = "jq-repl"
-version = "0.28.3"
+version = "0.28.4"
 dependencies = [
  "anyhow",
  "clap",
