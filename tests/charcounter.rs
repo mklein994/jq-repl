@@ -28,7 +28,7 @@ fn build_charcounter(length: usize) -> Result<String, Box<dyn std::error::Error>
 #[test]
 fn blank_when_given_few_characters() {
     let output = build_charcounter(2).unwrap();
-    assert!(output.is_empty());
+    assert_eq!(output, "");
 }
 
 #[test]
